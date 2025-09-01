@@ -22,7 +22,7 @@ export type LanguageContextType = {
   lang: Accessor<Language>;
   setLang: Setter<Language>;
   t: InitializedResource<i18n.Translator<Dictionary, string>>;
-  languages: Accessor<Language[]>;
+  otherLanguages: Accessor<Language[]>;
 };
 
 const LanguageContext = createContext<LanguageContextType>();
@@ -32,8 +32,9 @@ export function I18nProvider(props: { lang: Language; children: JSX.Element }) {
   const [t] = createResource(lang, fetchTranslator, {
     initialValue: translateDict(DeDict),
   });
-  const languages = () => _languages;
-  const languageProvider = { lang, setLang, t, languages };
+  const otherLanguages = () =>
+    _languages.filter((language) => language !== lang());
+  const languageProvider = { lang, setLang, t, otherLanguages };
 
   return (
     <LanguageContext.Provider value={languageProvider}>

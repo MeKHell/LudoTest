@@ -1,1 +1,44 @@
-{ "hello": "Hallo" }
+{
+  "home": "Startseite",
+  "games": "Spiele",
+  "login": "Anmelden",
+  "admin": "Administrator",
+  "profile": "Profil",
+  "logout": "Abmelden",
+
+  "title": "Brettspiel-Bewertungsplattform",
+  "subtitle": "Entdecken, bewerten und rezensieren Sie Ihre Lieblings-Brettspiele",
+  "search.placeholder": "Nach Spielen suchen...",
+  "featured": "Empfohlene Spiele",
+  "popular": "Beliebt Diese Woche",
+
+  "register": "Registrieren",
+  "email": "E-Mail",
+  "password": "Passwort",
+  "confirmPassword": "Passwort bestätigen",
+  "forgotPassword": "Passwort vergessen?",
+  "noAccount": "Haben Sie kein Konto?",
+  "hasAccount": "Haben Sie bereits ein Konto?",
+
+  "rating": "Bewertung",
+  "reviews": "Rezensionen",
+  "addReview": "Rezension hinzufügen",
+  "yourRating": "Ihre Bewertung",
+  "complexity": "Komplexität",
+  "players": "Spieler",
+  "playTime": "Spielzeit",
+
+  "dashboard": "Admin-Dashboard",
+  "manage-users": "Benutzerverwaltung",
+  "manage-games": "Spielverwaltung",
+  "manage-reviews": "Rezensionsverwaltung",
+  "stats": "Statistiken",
+
+  "save": "Speichern",
+  "cancel": "Abbrechen",
+  "delete": "Löschen",
+  "edit": "Bearbeiten",
+  "loading": "Laden...",
+  "error": "Ein Fehler ist aufgetreten",
+  "success": "Erfolg!"
+}

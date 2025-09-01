@@ -4,10 +4,10 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "start": "vite",
-    "dev": "vite",
+    "start": "vite --host",
+    "dev": "vite --host",
     "build": "vite build",
-    "serve": "vite preview",
+    "serve": "vite preview --host",
     "lint": "eslint --fix"
   },
   "license": "MIT",
@@ -36,9 +36,12 @@
     "@typescript-eslint/parser": "^8.41.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "lucide-solid": "^0.542.0",
     "solid-js": "^1.9.5",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
+    "tw-animate-css": "^1.3.7",
+    "vite-plugin-eslint": "^1.8.1",
     "vite-plugin-pages": "^0.33.1"
   }
 }
