@@ -1,11 +1,11 @@
-import { createSignal, For, Show, Suspense, type Component } from "solid-js";
+import { For, Show, Suspense, type Component } from "solid-js";
 import { A, useLocation } from "@solidjs/router";
-import { I18nProvider, useI18n } from "./context/i18nContext";
+import { useI18n } from "./context/i18nContext";
 import { Button } from "./components/ui/button";
 
 const App: Component = (props: { children: Element }) => {
   const location = useLocation();
-  const { lang, setLang, t, languages } = useI18n();
+  const { lang, setLang, languages } = useI18n();
 
   return (
     <>
@@ -39,7 +39,10 @@ const App: Component = (props: { children: Element }) => {
               {(language) => (
                 <Show when={language !== lang()}>
                   {" "}
-                  <Button variant="outline" onClick={() => setLang(() => language)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setLang(() => language)}
+                  >
                     {language}
                   </Button>
                 </Show>

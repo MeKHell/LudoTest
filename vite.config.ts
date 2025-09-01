@@ -5,11 +5,7 @@ import solidPlugin from "vite-plugin-solid";
 import Pages from "vite-plugin-pages";
 
 export default defineConfig({
-  plugins: [
-    solidPlugin(),
-    tailwindcss(),
-    Pages({dirs: ['src/pages']}),
-  ],
+  plugins: [solidPlugin(), tailwindcss(), Pages({ dirs: ["src/pages"] })],
   server: {
     port: 3000,
   },

@@ -1,9 +1,9 @@
-import { useI18n } from '@/context/i18nContext';
-import { createSignal } from 'solid-js';
+import { useI18n } from "@/context/i18nContext";
+import { createSignal } from "solid-js";
 
-  const [count, setCount] = createSignal(0);
+const [count, setCount] = createSignal(0);
 export default function Home() {
-    const {t} = useI18n();
+  const { t } = useI18n();
 
   return (
     <section class="bg-gray-100 text-gray-700 p-8">
