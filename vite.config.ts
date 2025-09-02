@@ -12,7 +12,9 @@ export default defineConfig({
     Pages({ dirs: ["src/pages"] }),
     eslint({ failOnError: false }),
   ],
+  publicDir: "server",
   server: {
+    host: true,
     port: 3000,
   },
   build: {

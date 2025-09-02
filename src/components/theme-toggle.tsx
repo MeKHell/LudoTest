@@ -3,7 +3,7 @@ import Moon from "lucide-solid/icons/moon";
 import { Button } from "./ui/button";
 import { useColorMode } from "@kobalte/core";
 
-export function ThemeToggle(props: { class: string | undefined }) {
+export function ThemeToggle(props: { class?: string }) {
   const { colorMode, setColorMode } = useColorMode();
   return (
     <Button

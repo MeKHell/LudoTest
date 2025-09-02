@@ -4,10 +4,10 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "start": "vite --host",
-    "dev": "vite --host",
+    "start": "vite",
+    "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview --host",
+    "serve": "vite preview",
     "lint": "eslint --fix"
   },
   "license": "MIT",

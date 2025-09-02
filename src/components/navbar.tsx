@@ -48,22 +48,23 @@ export function NavBar() {
       ),
     },
   ];
+
   return (
     <div class="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50 h-14">
       <div class="container mx-auto px-4 flex-nowrap h-full">
         <div class="flex items-stretch justify-between h-full w-full">
-          <div class="flex items-center h-full grow-0 ">
+          <div class="flex items-center h-full grow-0 ">
             <Spade class="h-8 w-8 text-primary" />
-            <h1 class="text-2xl font-bold text-primary">LudoTest</h1>
+            <h1 class="text-2xl ml-1 font-bold text-primary">LudoTest</h1>
           </div>
 
-          <nav class="flex items-stretch shrink-0 h-full mx-3">
-            <div class="hidden md:flex items-stretch justify-around flex-nowrap shrink-0 h-full">
+          <nav class="flex items-stretch shrink-0 grow-1 h-full mx-3 max-w-lg">
+            <div class="hidden md:flex items-stretch justify-around flex-nowrap shrink-0 grow h-full">
               <For each={content}>
                 {(elem) => (
                   <A
                     href={elem.url}
-                    class={`flex items-center ${elem.additional_style}`}
+                    class={`flex items-center grow justify-center ${elem.additional_style}`}
                   >
                     {elem.element}
                   </A>

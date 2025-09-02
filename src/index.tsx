@@ -9,6 +9,7 @@ import { Router } from "@solidjs/router";
 import routes from "~solid-pages";
 import { I18nProvider } from "./context/i18nContext";
 import { ColorModeProvider, ColorModeScript } from "@kobalte/core/color-mode";
+import { getDefaultLanguage } from "./libs/i18n";
 
 const root = document.getElementById("root");
 
@@ -20,7 +21,7 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
 
 render(
   () => (
-    <I18nProvider lang="de">
+    <I18nProvider lang={getDefaultLanguage()}>
       <Suspense>
         <ColorModeScript />
         <ColorModeProvider>
