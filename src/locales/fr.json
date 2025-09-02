@@ -1,3 +1,44 @@
 {
-  "hello": "salut"
+  "home": "Accueil",
+  "games": "Jeux",
+  "login": "Connexion",
+  "admin": "Administrateur",
+  "profile": "Profil",
+  "logout": "Déconnexion",
+
+  "title": "Plateforme de Notation de Jeux de Société",
+  "subtitle": "Découvrez, notez et critiquez vos jeux de société préférés",
+  "search.placeholder": "Rechercher des jeux...",
+  "featured": "Jeux en Vedette",
+  "popular": "Populaire Cette Semaine",
+
+  "register": "S'inscrire",
+  "email": "Email",
+  "password": "Mot de passe",
+  "confirmPassword": "Confirmer le mot de passe",
+  "forgotPassword": "Mot de passe oublié?",
+  "noAccount": "Vous n'avez pas de compte?",
+  "hasAccount": "Vous avez déjà un compte?",
+
+  "rating": "Note",
+  "reviews": "Critiques",
+  "addReview": "Ajouter une Critique",
+  "yourRating": "Votre Note",
+  "complexity": "Complexité",
+  "players": "Joueurs",
+  "playTime": "Temps de Jeu",
+
+  "dashboard": "Tableau de Bord Administrateur",
+  "manage-users": "Gestion des Utilisateurs",
+  "manage-games": "Gestion des Jeux",
+  "manage-reviews": "Gestion des Critiques",
+  "stats": "Statistiques",
+
+  "save": "Sauvegarder",
+  "cancel": "Annuler",
+  "delete": "Supprimer",
+  "edit": "Modifier",
+  "loading": "Chargement...",
+  "error": "Une erreur est survenue",
+  "success": "Succès!"
 }

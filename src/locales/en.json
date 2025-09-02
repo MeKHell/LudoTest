@@ -1,1 +1,44 @@
-{ "hello": "hi" }
+{
+  "home": "Home",
+  "games": "Games",
+  "login": "Login",
+  "admin": "Admin",
+  "profile": "Profile",
+  "logout": "Logout",
+
+  "title": "Board Game Rating Platform",
+  "subtitle": "Discover, rate, and review your favorite board games",
+  "search.placeholder": "Search for games...",
+  "featured": "Featured Games",
+  "popular": "Popular This Week",
+
+  "register": "Register",
+  "email": "Email",
+  "password": "Password",
+  "confirmPassword": "Confirm Password",
+  "forgotPassword": "Forgot Password?",
+  "noAccount": "Don't have an account?",
+  "hasAccount": "Already have an account?",
+
+  "rating": "Rating",
+  "reviews": "Reviews",
+  "addReview": "Add Review",
+  "yourRating": "Your Rating",
+  "complexity": "Complexity",
+  "players": "Players",
+  "playTime": "Play Time",
+
+  "dashboard": "Admin Dashboard",
+  "manage-users": "User Management",
+  "manage-games": "Game Management",
+  "manage-reviews": "Review Management",
+  "stats": "Statistics",
+
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "loading": "Loading...",
+  "error": "An error occurred",
+  "success": "Success!"
+}
