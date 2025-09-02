@@ -4,7 +4,7 @@ import { A } from "@solidjs/router";
 import { Button } from "./ui/button";
 import { useI18n } from "@/context/i18nContext";
 import { ThemeToggle } from "./theme-toggle";
-import { For, JSX } from "solid-js";
+import { createSignal, For, JSX, onCleanup, onMount } from "solid-js";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,13 +23,13 @@ export function NavBar() {
   }[] = [
     {
       url: "/",
-      element: <div>{t()("home")}</div>,
+      element: <div>{t("home")}</div>,
       additional_style:
         "text-foreground h-full rounded hover:bg-accent transition-colors text-lg px-2",
     },
     {
       url: "/games",
-      element: <div>{t()("games")}</div>,
+      element: <div>{t("games")}</div>,
       additional_style:
         "text-foreground h-full rounded hover:bg-accent transition-colors text-lg px-2",
     },
@@ -38,7 +38,7 @@ export function NavBar() {
       element: (
         <div class="flex justify-between">
           <Button variant="outline" size="sm" class="mx-2 text-md">
-            {t()("login")}
+            {t("login")}
           </Button>
           <div class="flex md:hidden">
             <ThemeToggle />
@@ -49,8 +49,25 @@ export function NavBar() {
     },
   ];
 
+  const [show, setShow] = createSignal(true);
+  const [lastScrollY, setLastScrollY] = createSignal(0);
+
+  const controlNavbar = () => {
+    if (window.scrollY > lastScrollY()) {
+      setShow(() => false);
+    } else {
+      setShow(() => true);
+    }
+    setLastScrollY(() => window.scrollY);
+  };
+
+  onMount(() => window.addEventListener("scroll", controlNavbar));
+  onCleanup(() => window.removeEventListener("scroll", controlNavbar));
+
   return (
-    <div class="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50 h-14">
+    <div
+      class={`${show() ? "translate-y-0" : "-translate-y-full"} border-b bg-card/50 backdrop-blur-sm fixed w-full duration-300 top-0 z-50 h-14`}
+    >
       <div class="container mx-auto px-4 flex-nowrap h-full">
         <div class="flex items-stretch justify-between h-full w-full">
           <div class="flex items-center h-full grow-0 ">
