@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [
     solidPlugin(),
     tailwindcss(),
-    Pages({ dirs: ["src/pages"] }),
+    Pages({ dirs: ["resources/js/pages"] }),
     eslint({ failOnError: false }),
   ],
   publicDir: "server",
@@ -22,7 +22,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(__dirname, "./resources/js"),
     },
+  },
+  optimizeDeps: {
+    exclude: ["@solidjs/meta"],
   },
 });

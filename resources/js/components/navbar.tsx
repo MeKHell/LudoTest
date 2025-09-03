@@ -2,7 +2,6 @@ import Spade from "lucide-solid/icons/spade";
 import { LanguageSelector } from "./language-selector";
 import { A } from "@solidjs/router";
 import { Button } from "./ui/button";
-import { useI18n } from "@/context/i18nContext";
 import { ThemeToggle } from "./theme-toggle";
 import { createSignal, For, JSX, onCleanup, onMount } from "solid-js";
 import {
@@ -13,6 +12,7 @@ import {
 } from "./ui/dropdown-menu";
 import Menu from "lucide-solid/icons/menu";
 import { DropdownMenuSubTriggerProps } from "@kobalte/core/dropdown-menu";
+import { useI18n } from "@/context/i18nContext";
 
 export function NavBar() {
   const { t } = useI18n();

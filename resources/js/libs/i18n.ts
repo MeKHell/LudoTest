@@ -1,7 +1,7 @@
 import * as deDict from "../locales/de.json";
 import * as frDict from "../locales/fr.json";
 import * as enDict from "../locales/en.json";
-import { Language } from "@/types/d";
+import { Language } from "resources/js/types/d";
 import * as i18n from "@solid-primitives/i18n";
 
 export type Dictionary = typeof deDict;

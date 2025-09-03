@@ -12,7 +12,9 @@
     "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./resources/js/*"]
     }
-  }
+  },
+  "include": ["resources/js/**/*"],
+  "exclude": ["node_modules"]
 }

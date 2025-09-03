@@ -7,8 +7,8 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import Globe from "lucide-solid/icons/globe";
-import { useI18n } from "@/context/i18nContext";
 import { DropdownMenuSubTriggerProps } from "@kobalte/core/dropdown-menu";
+import { useI18n } from "@/context/i18nContext";
 
 export function LanguageSelector(props: { class: string }) {
   const { otherLanguages, setLang } = useI18n();

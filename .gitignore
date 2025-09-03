@@ -1,2 +1,8 @@
 dist
 node_modules
+.env
+.env.backup
+vendor
+public/build
+public/hot
+public/storage

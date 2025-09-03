@@ -1,5 +1,4 @@
-import { _languages, Dictionary, fetchTranslator } from "@/libs/i18n";
-import { Language } from "@/types/d";
+import { Language } from "resources/js/types/d";
 import {
   Accessor,
   createContext,
@@ -8,6 +7,7 @@ import {
   useContext,
 } from "solid-js";
 import * as i18n from "@solid-primitives/i18n";
+import { _languages, Dictionary, fetchTranslator } from "@/libs/i18n";
 
 export type LanguageContextType = {
   lang: Accessor<Language>;

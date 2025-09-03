@@ -1,3 +1,12 @@
+import Clock from "lucide-solid/icons/clock";
+import Users from "lucide-solid/icons/users";
+import Search from "lucide-solid/icons/search";
+import Star from "lucide-solid/icons/star";
+import { createSignal, For } from "solid-js";
+import TrendingUp from "lucide-solid/icons/trending-up";
+import Spade from "lucide-solid/icons/spade";
+import { TextField, TextFieldRoot } from "@/components/ui/textfield";
+import { useI18n } from "@/context/i18nContext";
 import {
   Card,
   CardContent,
@@ -5,16 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { TextField, TextFieldRoot } from "@/components/ui/textfield";
-import { useI18n } from "@/context/i18nContext";
-import Clock from "lucide-solid/icons/clock";
-import Users from "lucide-solid/icons/users";
-import Search from "lucide-solid/icons/search";
-import Star from "lucide-solid/icons/star";
-import { createSignal, For } from "solid-js";
 import { Badge } from "@/components/ui/badge";
-import TrendingUp from "lucide-solid/icons/trending-up";
-import Spade from "lucide-solid/icons/spade";
 const featuredGames = [
   {
     id: 1,
