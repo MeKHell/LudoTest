@@ -7,7 +7,7 @@ import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
 import solid from "eslint-plugin-solid/configs/recommended";
 
 export default defineConfig([
-  { ignores: ["**/dist**"] },
+  { ignores: ["**/dist**", "**/*build**"] },
   {
     files: ["**/*.{js,jsx,tsx,ts}"],
     plugins: { js },

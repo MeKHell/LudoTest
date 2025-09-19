@@ -33,11 +33,11 @@
     "verbatimModuleSyntax": false,
     "baseUrl": ".",
     "paths": {
-      "#/*": ["./src/*"],
+      "#/*": ["./resources/js/*"],
       "~~/*": ["./*"]
     }
   },
-  "include": ["src"],
+  "include": ["resources/js"],
   "exclude": [
     "vite.config.ts",
     "vitest.*.ts",
