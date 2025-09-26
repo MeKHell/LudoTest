@@ -10,9 +10,9 @@ createInertiaApp({
     title: (title?: string) => title || 'Laravel',
     resolve(name) {
         const pages = import.meta.glob('./Pages/**/*.{tsx,jsx}', { eager: true })
-        const page = pages[`./Pages/${name}.tsx`]
+        let page = pages[`./Pages/${name}.tsx`]
         if (!page) {
-            throw new Error(`Page ${name} not found`)
+            page = pages["./Pages/404.tsx"]
         }
 
         // @ts-expect-error ok
