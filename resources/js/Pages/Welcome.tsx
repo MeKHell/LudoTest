@@ -9,6 +9,7 @@ import Spade from 'lucide-solid/icons/spade'
 import { TextField, TextFieldRoot } from '@/components/ui/textfield'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { useLang } from '@/hooks/useLang'
 const featuredGames = [
   {
     id: 1,
@@ -55,15 +56,15 @@ const popularGames = [
 
 export default function Welcome() {
   const [searchQuery, setSearchQuery] = createSignal('')
-  const t = (x: string) => x
+  const { trans: t } = useLang()
   return (
     <div class="bg-background min-h-screen">
       {/* Hero Section */}
       <section class="px-4 py-20">
         <div class="container mx-auto text-center">
-          <h1 class="mb-6 text-4xl font-bold text-balance md:text-6xl">{t('title')}</h1>
+          <h1 class="mb-6 text-4xl font-bold text-balance md:text-6xl">{t('welcome.title')}</h1>
           <p class="text-muted-foreground mx-auto mb-8 max-w-2xl text-xl text-balance">
-            {t('subtitle')}
+            {t('welcome.subtitle')}
           </p>
 
           {/* Search Bar */}
@@ -73,7 +74,7 @@ export default function Welcome() {
               <TextFieldRoot>
                 <TextField
                   type="text"
-                  placeholder={t('search.placeholder')}
+                  placeholder={t('welcome.placeholder')}
                   value={searchQuery()}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   class="h-12 pl-10 text-lg"
@@ -87,7 +88,7 @@ export default function Welcome() {
       {/* Featured Games */}
       <section class="bg-muted/30 px-4 py-16">
         <div class="container mx-auto">
-          <h2 class="mb-12 text-center text-3xl font-bold">{t('featured')}</h2>
+          <h2 class="mb-12 text-center text-3xl font-bold">{t('welcome.featured')}</h2>
 
           <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             <For each={featuredGames}>
@@ -123,7 +124,7 @@ export default function Welcome() {
                       <Badge variant="secondary">Complexity: {game.complexity}/5</Badge>
                     </div>
                     <div class="text-muted-foreground text-sm">
-                      {game.reviews} {t('reviews')}
+                      {game.reviews} {t('welcome.reviews')}
                     </div>
                   </CardContent>
                 </Card>
@@ -136,7 +137,7 @@ export default function Welcome() {
       {/* Popular This Week */}
       <section class="px-4 py-16">
         <div class="container mx-auto">
-          <h2 class="mb-12 text-center text-3xl font-bold">{t('popular')}</h2>
+          <h2 class="mb-12 text-center text-3xl font-bold">{t('welcome.popular')}</h2>
 
           <div class="mx-auto max-w-2xl">
             <Card>

@@ -1,17 +1,25 @@
-import { For } from "solid-js";
+import { For } from 'solid-js'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { Button } from "./ui/button";
-import Globe from "lucide-solid/icons/globe";
-import { DropdownMenuSubTriggerProps } from "@kobalte/core/dropdown-menu";
+} from './ui/dropdown-menu'
+import { Button } from './ui/button'
+import Globe from 'lucide-solid/icons/globe'
+import { DropdownMenuSubTriggerProps } from '@kobalte/core/dropdown-menu'
+import axios from 'axios'
+import { router } from 'inertia-adapter-solid'
 
 export function LanguageSelector(props: { class: string }) {
-  const setLang = () =>{};
-  const otherLanguages = () => ["de", "fr", "it"]
+  const setLang = (lang: string) => {
+    axios
+      .post('/lang', {
+        lang: lang,
+      })
+      .then(() => router.reload())
+  }
+  const otherLanguages = () => ['de', 'fr', 'en']
   return (
     <div class={props.class}>
       <DropdownMenu placement="bottom-start">
@@ -33,5 +41,5 @@ export function LanguageSelector(props: { class: string }) {
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
-  );
+  )
 }
