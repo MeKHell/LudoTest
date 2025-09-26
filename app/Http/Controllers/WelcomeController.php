@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class WelcomeController extends Controller
