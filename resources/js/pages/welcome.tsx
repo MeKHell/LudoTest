@@ -7,6 +7,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useLang } from '@/hooks/useLang';
 import GuestLayout from '@/layouts/GuestLayout';
 import { Clock, Search, Spade, Star, TrendingUp, Users } from 'lucide-react';
 import { JSX, useState } from 'react';
@@ -60,7 +61,7 @@ const popularGames = [
 
 export default function Welcome() {
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const { trans: t } = { trans: (x: string) => x }; //useLang();
+    const { t } = useLang();
     return (
         <div className="min-h-screen bg-background">
             {/* Hero Section */}

@@ -6,11 +6,23 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import { update } from '@/actions/App/Http/Controllers/SetLang';
+import { router, useForm } from '@inertiajs/react';
+import { useEffect } from 'react';
+
 
 export function LanguageSelector(props: { className: string }) {
+
+    const form = useForm();
     const setLang = (lang: string) => {
-        console.log(lang);
-    };
+        form.setData((old: any) => ({ ...old, lang }));
+    }
+
+    useEffect(() => {
+        form.submit(update());
+        router.reload();
+    }, [form.data]);
+
     const otherLanguages = () => ['de', 'fr', 'en'];
     return (
         <div className={props.className}>
