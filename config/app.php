@@ -48,6 +48,8 @@ return [
      * |
      */
     'url' => env('APP_URL', 'http://localhost'),
+    'bgg_url' => env('BGG_URL', 'https://boardgamegeek.com/xmlapi2'),
+    'bgg_api_key' => env('BGG_API_KEY'),
 
     /*
      * |--------------------------------------------------------------------------
