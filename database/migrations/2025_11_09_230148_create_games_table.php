@@ -19,8 +19,8 @@ return new class extends Migration {
             $table->string('bgg_version_id');
             $table->foreignIdFor(Language::class, 'lang');
             $table->longText('description');
-            $table->fullText('description');
-            $table->fullText('name');
+            // $table->fullText('description');
+            // $table->fullText('name');
         });
     }
 

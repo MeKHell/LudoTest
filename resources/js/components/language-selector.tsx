@@ -20,7 +20,6 @@ export function LanguageSelector(props: { className: string }) {
 
     useEffect(() => {
         form.submit(update());
-        router.reload();
     }, [form.data]);
 
     const otherLanguages = () => ['de', 'fr', 'en'];

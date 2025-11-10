@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SetLang extends Controller
 {
@@ -14,9 +14,13 @@ class SetLang extends Controller
         if (!in_array($lang, config('app.available_locales'))) {
             $lang = config('app.locale');
         }
+
+        // Permanent memory
+        (new UserController())->setlocale(Auth::user()->id, $lang);
         $request->session()->put('locale', $lang);
+
+        // One shot memory
         app()->setLocale($lang);
-        Log::debug($lang);
         return redirect()->back();
     }
 }

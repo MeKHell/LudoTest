@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->foreignIdFor(Game::class);
             $table->foreignIdFor(User::class, 'writer');
             $table->foreignIdFor(User::class, 'editor')->nullable(true);
-            $table->fullText('content');
+            //$table->fullText('content');
         });
     }
 
