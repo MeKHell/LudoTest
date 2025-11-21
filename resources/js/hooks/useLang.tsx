@@ -5,7 +5,7 @@ type LangValue = string | { [key: string]: string | LangValue }
 type LangObject = Record<string, LangValue>
 
 export function useLang() {
-    const { lang } = usePage<{ lang: LangObject }>().props
+    const { lang, locale, languages } = usePage<{ lang: LangObject, locale: string, languages: string[] }>().props
 
     function t(key: string, replaces: Replaces | string = {}): string {
         const raw = getValueFromKey(key)
@@ -41,5 +41,5 @@ export function useLang() {
         return typeof current === 'string' ? current : undefined
     }
 
-    return { t }
+    return { t, locale, languages }
 }

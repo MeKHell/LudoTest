@@ -7,11 +7,14 @@ import {
     DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { update } from '@/actions/App/Http/Controllers/SetLang';
-import { router, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
+import { useLang } from '@/hooks/useLang';
 
 
-export function LanguageSelector(props: { className: string }) {
+
+export function LanguageSelector(props: { className: string, asList?: boolean }) {
+    const { locale, languages } = useLang();
 
     const form = useForm();
     const setLang = (lang: string) => {
@@ -22,7 +25,18 @@ export function LanguageSelector(props: { className: string }) {
         form.submit(update());
     }, [form.data]);
 
-    const otherLanguages = () => ['de', 'fr', 'en'];
+    const otherLanguages = () => languages.filter((x) => x !== locale);
+
+    if (props.asList) {
+        return (<div>            {
+            otherLanguages().map((locale) => (
+                <Button variant="outline" className={props.className} onClick={() => setLang(locale)}>
+                    <Globe className="h-5 w-5" /> {locale.toLocaleUpperCase()}
+                </Button>
+            ))
+        }</div>)
+    }
+
     return (
         <div className={props.className}>
             <DropdownMenu modal={false}>
