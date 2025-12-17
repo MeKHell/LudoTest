@@ -17,6 +17,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('home');
 });
 
-Route::get('/search', [GameController::class, 'search']);
-
 require __DIR__ . '/settings.php';
