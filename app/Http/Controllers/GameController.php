@@ -84,12 +84,23 @@ class GameController extends Controller
     public function search()
     {
         $query = request()->input('q');
+
+        $key = "search_{$query}";
+        $result = Cache::get($key);
+        if ($result){
+            Log::debug("Search found in database");
+            return $result;
+        }
+        Log::debug("Search not found in database");
         $bgg_res = bgg_query('search', ['query' => $query]);
+        Cache::put("search_{$query}", $bgg_res);
 
 
         $jmes = new CompilerRuntime('storage/jmespath');
         $formatter = "items.item[].{id: xml_attr.id, name:name.xml_attr.value, year: yearpublished.xml_attr.value}";
-        return $jmes($formatter, $bgg_res);
+        $result = $jmes($formatter, $bgg_res);
+        Cache::put($key, $result);
+        return $result;
     }
 
     public function get(string $id): JsonResponse
