@@ -1,0 +1,70 @@
+---
+title: Database content
+---
+erDiagram
+    User{
+        id id PK
+        timestamp created_at
+        timestamp updated_at
+        string name
+        string email UK
+        timestamp email_verified_at "Null"
+        string password
+        id lang FK "Null"
+        string remember_token "Null"
+        }
+    Game {
+        string bgge_id PK "bgge stands for bgg extended: bgg -> number, others -> string "
+        timestamp created_at
+        timestamp updated_at
+        string thumb_url "Null"
+        string thumb_hash "Null"
+        string thumb_blurhash "Null"
+        string image_url "Null"
+        string image_hash "Null"
+        string image_blurhash "Null"
+        int published_year "Null"
+        int age "Null"
+        int box_time "Null"
+        int min_time "Null"
+        int max_time "Null"
+        string name
+        string child_of FK "Null"
+        string description_hash FK
+    }
+    Description {
+        string lang PK
+        string hash PK
+        LongText description
+    }
+    GameLang {
+        string game_id FK,PK
+        string lang PK
+    }
+    Comment {
+        id id PK
+        timestamp created_at
+        timestamp updated_at
+        LongText content
+        string lang
+        string game_id FK
+        id writer_id FK
+        id editor_id FK "Null"
+    }
+    Artist{
+        string bgge_id PK
+        string name
+    }
+    Publisher {
+        string bgge_id PK
+        string name
+     }
+    User one or zero -- 0+ Comment  : edits
+    User 1 -- 0+ Comment : writes
+    Comment 1 -- 0+ Game : on
+    Game 1 -- one or zero Game : "version of "
+    Game 1 -- 1+ GameLang : "is available in "
+    Game 1 -- 1+ Description: "described by"
+    Game 0+ -- 0+ Publisher: "published by"
+    Game 0+ -- 0+ Artist: "drawn by"
+
