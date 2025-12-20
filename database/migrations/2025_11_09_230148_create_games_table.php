@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Description;
+use App\Models\Game;
 use App\Models\Language;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -12,13 +14,23 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('games', function (Blueprint $table) {
-            $table->id();
+            $table->string("bgge_id");
             $table->timestamps();
             $table->string('name');
-            $table->string('bgg_id');
-            $table->string('bgg_version_id');
+            $table->string('thumb_url')->nullable();
+            $table->string('thumb_hash')->nullable();
+            $table->string('thumb_blurhash')->nullable();
+            $table->string('image_url')->nullable();
+            $table->string('image_hash')->nullable();
+            $table->string('image_blurhash')->nullable();
+            $table->integer('pub_year')->nullable();
+            $table->integer('min_age')->nullable();
+            $table->integer('box_time')->nullable();
+            $table->integer('min_time')->nullable();
+            $table->integer('max_time')->nullable();
+            $table->foreignIdFor(Game::class, 'child_of');
             $table->foreignIdFor(Language::class, 'lang');
-            $table->longText('description');
+            $table->foreignIdFor(Description::class, 'description_hash');
             // $table->fullText('description');
             // $table->fullText('name');
         });

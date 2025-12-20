@@ -13,6 +13,11 @@ erDiagram
         id lang FK "Null"
         string remember_token "Null"
         }
+    Lang {
+        string code PK
+        string bgg_id
+        string bgg_string
+    }
     Game {
         string bgge_id PK "bgge stands for bgg extended: bgg -> number, others -> string "
         timestamp created_at
@@ -23,8 +28,8 @@ erDiagram
         string image_url "Null"
         string image_hash "Null"
         string image_blurhash "Null"
-        int published_year "Null"
-        int age "Null"
+        int pub_year "Null"
+        int min_age "Null"
         int box_time "Null"
         int min_time "Null"
         int max_time "Null"
@@ -32,31 +37,33 @@ erDiagram
         string child_of FK "Null"
         string description_hash FK
     }
-    Description {
-        string lang PK
-        string hash PK
-        LongText description
-    }
     GameLang {
-        string game_id FK,PK
-        string lang PK
+        string game_id FK, PK
+        string lang_code FK, PK
+    }
+    Description {
+        string lang PK, FK
+        string en_hash PK
+        LongText description
     }
     Comment {
         id id PK
         timestamp created_at
         timestamp updated_at
         LongText content
-        string lang
+        string lang FK
         string game_id FK
         id writer_id FK
         id editor_id FK "Null"
     }
     Artist{
         string bgge_id PK
+        string bgge_game_id PK, FK
         string name
     }
     Publisher {
         string bgge_id PK
+        string bgge_game_id PK, FK
         string name
      }
     User one or zero -- 0+ Comment  : edits
@@ -67,4 +74,7 @@ erDiagram
     Game 1 -- 1+ Description: "described by"
     Game 0+ -- 0+ Publisher: "published by"
     Game 0+ -- 0+ Artist: "drawn by"
+    Lang 0+ -- 0+ GameLang: "is in"
+    Comment 1 -- 1+ Lang: "is in"
+    User 1 -- 1+ Lang: speaks
 

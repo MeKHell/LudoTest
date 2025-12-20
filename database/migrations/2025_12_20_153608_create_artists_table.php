@@ -4,17 +4,18 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('picture', function (Blueprint $table) {
-            $table->string('url');
-            $table->timestamps();
-            $table->string('blurhash')->nullable(true);
-            $table->primary('url');
+        Schema::create('artists', function (Blueprint $table) {
+            $table->string("bgge_id");
+            $table->foreignIdFor("game_id");
+            $table->string("name");
+            $table->primary(["game_id","bgge_id"]);
         });
     }
 
@@ -23,6 +24,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('picture');
+        Schema::dropIfExists('artists');
     }
 };

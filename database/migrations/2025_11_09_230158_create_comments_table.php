@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->timestamps();
             $table->longText('content');
             $table->foreignIdFor(Language::class, 'lang');
-            $table->foreignIdFor(Game::class);
+            $table->foreignIdFor(Game::class, 'game_id');
             $table->foreignIdFor(User::class, 'writer');
             $table->foreignIdFor(User::class, 'editor')->nullable(true);
             //$table->fullText('content');
