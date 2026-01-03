@@ -13,23 +13,17 @@ class Game extends Model
 {
     /** @use HasFactory<\Database\Factories\GameFactory> */
     use HasFactory;
+    protected $primaryKey = 'bgge_id';
+    protected $keyType = 'string';
 
     protected $fillable = ['name', 'bgg_id', 'bgg_version_id', 'lang', 'description'];
 
     /**
-     * @return BelongsToMany<Picture,Game,Pivot>
-     */
-    public function pictures(): BelongsToMany
-    {
-        return $this->belongsToMany(Picture::class);
-    }
-
-    /**
      * @return HasOne<Language,Game>
      */
-    public function language(): HasOne
+    public function language(): BelongsToMany
     {
-        return $this->hasOne(Language::class, $localKey = 'lang');
+        return $this->belongsToMany(Language::class, 'game_language', 'game_id', 'lang_id');
     }
 
     /**
@@ -38,5 +32,13 @@ class Game extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
+    }
+
+    public function publishers(): HasMany {
+        return $this->hasMany(Publisher::class, 'bgge_game_id');
+    }
+
+    public function artists(): HasMany {
+        return $this->hasMany(Artist::class, 'bgge_game_id');
     }
 }

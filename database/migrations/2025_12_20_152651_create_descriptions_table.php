@@ -13,10 +13,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('descriptions', function (Blueprint $table) {
+            $table->id();
             $table->foreignIdFor(Language::class, 'lang');
+            $table->string('game_id');
             $table->string('en_hash');
             $table->longText('description');
-            $table->primary(['lang', 'en_hash']);
+            $table->unique(['lang', 'game_id']);
         });
     }
 

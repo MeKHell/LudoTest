@@ -11,7 +11,6 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('languages', function (Blueprint $table) {
-            $table->timestamps();
             $table->tinyText('code');
             $table->integer('bgg_index');
             $table->string('bgg_name');

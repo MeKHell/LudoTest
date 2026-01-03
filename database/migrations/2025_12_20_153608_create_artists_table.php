@@ -12,10 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('artists', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
             $table->string("bgge_id");
-            $table->foreignIdFor("game_id");
-            $table->string("name");
-            $table->primary(["game_id","bgge_id"]);
+            $table->foreignIdFor("name");
+            $table->unique(["bgge_id", "name"]);
         });
     }
 

@@ -35,15 +35,17 @@ erDiagram
         int max_time "Null"
         string name
         string version_of FK "Null"
-        string description_hash FK
+        string description_hash
     }
     GameLang {
         string game_id FK, PK
-        string lang_code FK, PK
+        string lang_id FK, PK
     }
     Description {
-        string lang PK, FK
-        string en_hash PK
+        id id PK
+        string game_id FK
+        string lang FK
+        string en_hash
         LongText description
     }
     Comment {
@@ -57,13 +59,15 @@ erDiagram
         id editor_id FK "Null"
     }
     Artist{
-        string bgge_id PK
-        string bgge_game_id PK, FK
+        id id PK
+        string bgge_id
+        string bgge_game_id FK
         string name
     }
     Publisher {
-        string bgge_id PK
-        string bgge_game_id PK, FK
+        id id PK
+        string bgge_id
+        string bgge_game_id FK
         string name
      }
     User one or zero -- 0+ Comment  : edits
@@ -77,4 +81,5 @@ erDiagram
     Lang 0+ -- 0+ GameLang: "is in"
     Comment 1 -- 1+ Lang: "is in"
     User 1 -- 1+ Lang: speaks
+    Description 1 -- 1+ Lang: "written in"
 

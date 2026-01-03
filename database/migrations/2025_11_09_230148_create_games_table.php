@@ -28,9 +28,10 @@ return new class extends Migration {
             $table->integer('box_time')->nullable();
             $table->integer('min_time')->nullable();
             $table->integer('max_time')->nullable();
+            $table->string('description_hash');
             $table->foreignIdFor(Game::class, 'version_of');
             $table->foreignIdFor(Language::class, 'lang');
-            $table->foreignIdFor(Description::class, 'description_hash');
+            $table->string('description_hash');
             // $table->fullText('description');
             // $table->fullText('name');
         });

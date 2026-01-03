@@ -5,20 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Comment extends Model
 {
     /** @use HasFactory<\Database\Factories\CommentFactory> */
     use HasFactory;
 
-    protected $fillable = ['content', 'writer', 'editor', 'game_id', 'lang'];
+    protected $guarded = ['created_at', 'updated_at'];
 
     /**
      * @return BelongsTo<User,Comment>
      */
     public function writer(): BelongsTo
     {
-        return $this->belongsTo(User::class, $ownerKey = 'writer');
+        return $this->belongsTo(User::class, 'writer_id');
     }
 
     /**
@@ -26,22 +27,23 @@ class Comment extends Model
      */
     public function editor(): BelongsTo
     {
-        return $this->belongsTo(User::class, $ownerKey = 'editor');
+        return $this->belongsTo(User::class, 'editor_id');
     }
 
     /**
      * @return BelongsTo<Game,Comment>
      */
-    public function game(): BelongsTo
+    public function onGame(): BelongsTo
     {
-        return $this->belongsTo(Game::class);
+        return $this->belongsTo(Game::class, 'game_id');
     }
 
     /**
-     * @return BelongsTo<Game,Comment>
+     * @return HasOne<Language,Comment>
      */
-    public function language(): BelongsTo
+    public function writtenIn(): HasOne
     {
-        return $this->belongsTo(Game::class);
+        return $this->hasOne(Language::class, 'lang');
     }
+
 }

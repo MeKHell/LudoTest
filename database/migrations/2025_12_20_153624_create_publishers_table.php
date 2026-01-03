@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('publishers', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->string('bgge_id');
+            $table->string('name');
+            $table->unique(["bgge_id", "name"]);
         });
     }
 

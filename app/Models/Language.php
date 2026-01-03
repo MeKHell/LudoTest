@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,25 +14,27 @@ class Language extends Model
     /** @use HasFactory<\Database\Factories\LanguageFactory> */
     use HasFactory;
 
-    protected $fillable = ['code', 'bgg_index', 'bgg_name'];
-
     protected $primaryKey = 'code';
-
     protected $keyType = 'string';
 
     /**
-     * @return BelongsToMany<Game,Language,Pivot>
+     * @return hasMany<Language,Comment>
      */
-    public function games(): BelongsToMany
+    public function comments(): hasMany
     {
-        return $this->belongsToMany(Game::class);
+        return $this->hasMany(Comment::class, 'lang');
     }
 
-    /**
-     * @return BelongsToMany<Model,Language,Pivot>
-     */
-    public function comments(): BelongsToMany
+    public function speaked_by(): HasMany {
+        return $this->hasMany(User::class, 'lang');
+    }
+
+    public function descriptions(): HasMany {
+        return $this->hasMany(Description::class, 'lang');
+    }
+
+    public function games(): BelongsToMany
     {
-        return $this->belongsToMany(Comment);
+        return $this->belongsToMany(Game::class, 'game_language', 'lang_id', 'game_id');
     }
 }
