@@ -34,7 +34,7 @@ erDiagram
         int min_time "Null"
         int max_time "Null"
         string name
-        string child_of FK "Null"
+        string version_of FK "Null"
         string description_hash FK
     }
     GameLang {
@@ -69,8 +69,8 @@ erDiagram
     User one or zero -- 0+ Comment  : edits
     User 1 -- 0+ Comment : writes
     Comment 1 -- 0+ Game : on
-    Game 1 -- one or zero Game : "version of "
-    Game 1 -- 1+ GameLang : "is available in "
+    Game 1 -- one or zero Game : "version of"
+    Game 1 -- 1+ GameLang : "is available in"
     Game 1 -- 1+ Description: "described by"
     Game 0+ -- 0+ Publisher: "published by"
     Game 0+ -- 0+ Artist: "drawn by"
