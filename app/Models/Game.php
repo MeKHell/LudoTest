@@ -16,7 +16,7 @@ class Game extends Model
     protected $primaryKey = 'bgge_id';
     protected $keyType = 'string';
 
-    protected $fillable = ['name', 'bgg_id', 'bgg_version_id', 'lang', 'description'];
+    protected $guarded = ['updated_at', 'created_at'];
 
     /**
      * @return HasOne<Language,Game>
@@ -34,11 +34,8 @@ class Game extends Model
         return $this->hasMany(Comment::class);
     }
 
-    public function publishers(): HasMany {
-        return $this->hasMany(Publisher::class, 'bgge_game_id');
-    }
 
-    public function artists(): HasMany {
-        return $this->hasMany(Artist::class, 'bgge_game_id');
+    public function worked_on(): HasMany {
+        return $this->hasMany(GameRole::class, 'bgge_game_id');
     }
 }

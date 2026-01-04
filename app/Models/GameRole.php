@@ -8,10 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Artist extends Model
+class GameRole extends Model
 {
-    /** @use HasFactory<\Database\Factories\ArtistFactory> */
-    use HasFactory;
     protected $guarded = ['id'];
     public function games_drawn(): BelongsTo {
         return $this->belongsTo(Game::class, 'bgge_game_id');

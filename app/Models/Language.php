@@ -16,6 +16,7 @@ class Language extends Model
 
     protected $primaryKey = 'code';
     protected $keyType = 'string';
+    protected $guarded = [];
 
     /**
      * @return hasMany<Language,Comment>
