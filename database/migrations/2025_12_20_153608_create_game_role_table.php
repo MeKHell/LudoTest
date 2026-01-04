@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Game;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,12 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('artists', function (Blueprint $table) {
+        Schema::create('game_role', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->string("bgge_id");
-            $table->foreignIdFor("name");
-            $table->unique(["bgge_id", "name"]);
+            $table->string('role'); // Can be: Publisher, Designer, Artist
+            $table->string("name");
+            $table->foreignIdFor(Game::class, 'bgge_id');
+            $table->unique(["bgge_id", "name", 'role']);
         });
     }
 

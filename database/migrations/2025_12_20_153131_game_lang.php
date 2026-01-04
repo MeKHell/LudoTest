@@ -1,10 +1,10 @@
 <?php
 
 use App\Models\Game;
+use App\Models\Language;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use JetBrains\PhpStorm\Language;
 
 return new class extends Migration
 {

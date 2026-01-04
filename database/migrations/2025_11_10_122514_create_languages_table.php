@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('languages', function (Blueprint $table) {
             $table->tinyText('code');
             $table->integer('bgg_index');
-            $table->string('bgg_name');
+            $table->string('name');
             $table->primary('code');
         });
     }

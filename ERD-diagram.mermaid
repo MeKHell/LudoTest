@@ -58,26 +58,20 @@ erDiagram
         id writer_id FK
         id editor_id FK "Null"
     }
-    Artist{
+    GameRole{
         id id PK
+        string role "Can be: Publisher, Designer, Artist"
         string bgge_id
         string bgge_game_id FK
         string name
     }
-    Publisher {
-        id id PK
-        string bgge_id
-        string bgge_game_id FK
-        string name
-     }
     User one or zero -- 0+ Comment  : edits
     User 1 -- 0+ Comment : writes
     Comment 1 -- 0+ Game : on
     Game 1 -- one or zero Game : "version of"
     Game 1 -- 1+ GameLang : "is available in"
     Game 1 -- 1+ Description: "described by"
-    Game 0+ -- 0+ Publisher: "published by"
-    Game 0+ -- 0+ Artist: "drawn by"
+    Game 0+ -- 1 GameRole: "worked on"
     Lang 0+ -- 0+ GameLang: "is in"
     Comment 1 -- 1+ Lang: "is in"
     User 1 -- 1+ Lang: speaks
