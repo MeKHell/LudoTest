@@ -1,8 +1,6 @@
 <?php
 
-use App\Models\Description;
 use App\Models\Game;
-use App\Models\Language;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -28,9 +26,8 @@ return new class extends Migration {
             $table->integer('box_time')->nullable();
             $table->integer('min_time')->nullable();
             $table->integer('max_time')->nullable();
-            $table->foreignIdFor(Game::class, 'version_of');
-            $table->foreignIdFor(Language::class, 'lang');
-            $table->string('description_hash');
+            $table->foreignIdFor(Game::class, 'version_of')->nullable();
+            $table->string('description_hash')->nullable(); // sha256
             // $table->fullText('description');
             // $table->fullText('name');
         });

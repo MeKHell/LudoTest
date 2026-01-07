@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('game_role', function (Blueprint $table) {
+        Schema::create('game_roles', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
             $table->string('role'); // Can be: Publisher, Designer, Artist

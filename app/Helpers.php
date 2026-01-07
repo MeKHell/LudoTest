@@ -44,7 +44,7 @@ if (!function_exists('bgg_query')) {
     function bgg_query(string $path, array $data)
     {
         if (!in_array($path, ['search', 'thing'])) {
-            return;
+            return null;
         }
         $api_key = config('app.bgg_api_key');
         $url = config('app.bgg_url') . '/' . $path;
@@ -64,7 +64,24 @@ if (!function_exists('bgg_query')) {
         curl_close($req);
 
         $xml = simplexml_load_string($result);
-        //json_encode($xml), true);
         return xmlToArray($xml);
+    }
+}
+
+if (!function_exists('extract_subarray')) {
+    function extract_subarray(string $key, array &$arr): array | null{
+        if (!is_array($arr) || !key_exists($key, $arr)) {
+            return null;
+        }
+        $res = $arr[$key];
+        unset($arr[$key]);
+        return $res;
+    }
+}
+
+if (!function_exists('lt_translate')) {
+    function lt_translate(string $text, string $lang_code = 'EN'): array {
+        // TODO implement translation
+        return [$lang_code => $text];
     }
 }

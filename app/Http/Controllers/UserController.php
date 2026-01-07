@@ -8,7 +8,7 @@ class UserController extends Controller
 {
     public function setLocale(int $id, string $lang): void
     {
-        if (!in_array($lang, config('app.available_locales'))) {
+        if (!$lang || !in_array($lang, config('app.available_locales'))) {
             return;
         }
         $user = User::find($id);

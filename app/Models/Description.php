@@ -11,7 +11,11 @@ class Description extends Model
 {
     /** @use HasFactory<\Database\Factories\DescriptionFactory> */
     use HasFactory;
-    protected $fillable = ['game_id', 'lang', 'en_hash', 'description'];
+    protected $guarded = ['id'];
+
+    protected $hidden = ['id', 'created_at', 'updated_at', 'game_id', 'en_hash'];
+
+    public $timestamps = false;
 
     public function writtenIn(): HasOne
     {

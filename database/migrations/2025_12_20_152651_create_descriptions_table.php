@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Game;
 use App\Models\Language;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -15,7 +16,7 @@ return new class extends Migration
         Schema::create('descriptions', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Language::class, 'lang');
-            $table->string('game_id');
+            $table->foreignIdFor(Game::class, 'game_id');
             $table->string('en_hash');
             $table->longText('description');
             $table->unique(['lang', 'game_id']);

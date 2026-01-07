@@ -16,7 +16,10 @@ class Language extends Model
 
     protected $primaryKey = 'code';
     protected $keyType = 'string';
+    public $incrementing = false;
     protected $guarded = [];
+
+    public $timestamps = false;
 
     /**
      * @return hasMany<Language,Comment>
@@ -36,6 +39,11 @@ class Language extends Model
 
     public function games(): BelongsToMany
     {
-        return $this->belongsToMany(Game::class, 'game_language', 'lang_id', 'game_id');
+        return $this->belongsToMany(Game::class,
+                'game_language',
+                'lang_id',
+                'game_id',
+                'code',
+                'bgge_id');
     }
 }
