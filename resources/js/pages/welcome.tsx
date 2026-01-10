@@ -8,9 +8,10 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useLang } from '@/hooks/useLang';
-import GuestLayout from '@/layouts/GuestLayout';
 import { Clock, Search, Spade, Star, TrendingUp, Users } from 'lucide-react';
 import { JSX, useState } from 'react';
+import AppLayout from '@/layouts/app-layout';
+import { Head } from '@inertiajs/react';
 
 const featuredGames = [
     {
@@ -64,6 +65,7 @@ export default function Welcome() {
     const { t } = useLang();
     return (
         <div className="min-h-screen bg-background">
+            <Head title="LudoTest" />
             {/* Hero Section */}
             <section className="px-4 py-20">
                 <div className="container mx-auto text-center">
@@ -337,5 +339,5 @@ export default function Welcome() {
 }
 
 Welcome.layout = (page: JSX.Element) => (
-    <GuestLayout children={page} title="Welcome" />
+    <AppLayout children={page} />
 );

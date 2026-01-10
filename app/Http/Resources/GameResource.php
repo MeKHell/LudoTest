@@ -34,7 +34,26 @@ class GameResource extends JsonResource
         }
         $game['descriptions'] = $descriptions;
 
-        $game['languages'] = array_map(fn($language) => $language['code'], $game['languages']);
+        $artists = [];
+        $publishers = [];
+        $designers = [];
+        foreach ($game['worked_on'] as $role) {
+            switch ($role['role']) {
+                case 'Artist':
+                    $artists[] = $role['name'];
+                    break;
+                case 'Publisher':
+                    $publishers[] = $role['name'];
+                    break;
+                case 'Designer':
+                    $designers[] = $role['name'];
+                    break;
+            }
+        }
+        unset($game['worked_on']);
+        $game['artists'] = $artists;
+        $game['publishers'] = $publishers;
+        $game['designers'] = $designers;
 
         return $game;
     }

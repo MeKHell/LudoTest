@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ChevronsUpDown, Menu, Spade } from 'lucide-react';
-import { JSX, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LanguageSelector } from './language-selector';
 import { ThemeToggle } from './theme-toggle';
 import { Button } from './ui/button';

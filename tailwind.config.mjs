@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 import animate from "tailwindcss-animate";
 
+// eslint-disable-next-line no-undef
 module.exports = {
   darkMode: ["class", '[data-kb-theme="dark"]'],
   content: ["src/routes/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],

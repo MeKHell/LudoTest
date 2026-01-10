@@ -26,6 +26,8 @@ class GameController extends Controller
             description: description.value,
             pub_year: yearpublished.xml_attr.value,
             min_age: minage.xml_attr.value,
+            min_players: minplayers.xml_attr.value,
+            max_players: maxplayers.xml_attr.value,
             box_time: playingtime.xml_attr.value,
             min_time: minplaytime.xml_attr.value,
             max_time: maxplaytime.xml_attr.value,
@@ -101,7 +103,6 @@ class GameController extends Controller
 
         // Binds the roles to the game
         $roles = $artists + $publishers + $designers;
-        Log::debug('roles: ' . json_encode($roles));
         if ($roles && count($roles) > 0){
             $db_game->worked_on()->upsert( $roles, ['bgge_id', 'name', 'role'], ['bgge_id', 'name', 'role']);
         }
@@ -124,13 +125,22 @@ class GameController extends Controller
         }
     }
 
-    private function getGame(string $id, ){
-        $game = Game::where('updated_at', '>', now()->subWeek())->find($id);
+    private function getGameFromDB(string $id)
+    {
+        $game = Game::find($id);
+        $versions = GameResource::collection($game->versions()->get());
+        return ['game' => $game->toResource(), 'versions' => $versions];
+    }
+
+    private function getGame(string $id){
+        // DUE TO RECURSIVITY: DO NOT SET UNDER SUBMINUTE
+        $game = Game::whereKey($id)
+                ->where('updated_at', '>', now()->subMinute())
+                ->first();
         if ($game) {
             Log::debug("Game " . $id . " found in database.");
-            $versions = GameResource::collection($game->versions()->get());
-            return ['game' => $game->toResource(), 'versions' => $versions];
-        }
+            return get_object_vars($id);
+            }
         Log::debug("Game " . $id . " not found in database.");
 
         // Querying required data
@@ -153,7 +163,7 @@ class GameController extends Controller
             $this->addGame($version, $languages, $game['bgge_id']);
         }
         Log::debug("Game " . $id . " added to database.");
-        return $this->getGame($id);
+        return $this->getGameFromDB($id);
     }
 
     public function getTrending(): JsonResponse

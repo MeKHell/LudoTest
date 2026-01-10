@@ -74,7 +74,7 @@ return [
      * |
      */
     'locale' => 'de',
-    'available_locales' => ['de', 'fr', 'en'],
+    'available_locales' => ['de', 'fr', 'en', 'it'],
     'fallback_locale' => 'de',
     'faker_locale' => 'de_CH',
 

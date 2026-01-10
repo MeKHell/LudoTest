@@ -1,0 +1,351 @@
+import { JSX, useCallback, useEffect, useMemo, useState } from 'react';
+import AppLayout from '@/layouts/app-layout';
+import { type Game } from '@/types';
+import GameController from '@/actions/App/Http/Controllers/GameController';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, Star, Users } from 'lucide-react';
+import { useLang } from '@/hooks/useLang';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+
+
+export default function Game({ id }: { id: string }) {
+    const { t , locale} = useLang();
+    const keepShort =
+        useCallback((arr: string[] | undefined) => {
+            if (!arr) return '';
+            if (arr.length > 3)
+                return `${arr[Math.floor(Math.random() * arr.length)]} ${t('game.many_others')}`;
+            return arr.join(', ');
+        }, [t]);
+
+    const [gameData, setGameData] = useState<Game>();
+    const [versionsData, setVersionsData] = useState<Game[]>([]);
+
+    const shortDesigners: string = useMemo(() => keepShort(gameData?.publishers)
+    , [gameData?.publishers, keepShort])
+    const shortPublishers: string = useMemo(
+        () => keepShort(gameData?.publishers),
+        [gameData?.publishers, keepShort],
+    );
+
+    const languages = useMemo(() => [...new Set(versionsData.flatMap(x =>
+        x.languages.map(y => y.code)))], [versionsData]);
+
+    useEffect(() => {
+        (async () => {
+            const data: { game: Game; versions: Game[] } = await fetch(
+                GameController.get(id).url,
+            ).then((res) => res.json());
+            setGameData(() => data.game);
+            setVersionsData(() => data.versions);
+        })();
+    }, []);
+
+    return (
+        <div className="min-h-screen bg-background">
+            {gameData === undefined ? (
+                <></>
+            ) : (
+                <>
+                    <div className="bg-muted/30">
+                        <div className="container mx-auto px-4 py-8">
+                            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                                {/* Game Image */}
+                                <div className="lg:col-span-1">
+                                    <div className="aspect-square overflow-hidden rounded-lg">
+                                        <img
+                                            src={gameData.image_url}
+                                            alt={gameData.name}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Game Info */}
+                                <div className="lg:col-span-2">
+                                    <div className="mb-4 flex items-start justify-between">
+                                        <div>
+                                            <h1 className="mb-2 text-3xl font-bold">
+                                                {gameData.name}
+                                            </h1>
+                                            <p className="mb-4 text-muted-foreground">
+                                                by{' '}
+                                                {shortDesigners}{' '}
+                                                •{' '}
+                                                {shortPublishers}{' '}
+                                                • {gameData.pub_year}
+                                            </p>
+                                        </div>
+                                        <Badge
+                                            variant="outline"
+                                            className="px-3 py-1 text-lg"
+                                        >
+                                            {languages.join(', ')}
+                                        </Badge>
+                                    </div>
+
+                                    {/* Rating Overview */}
+                                    <div className="mb-6 flex items-center gap-6">
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star
+                                                        key={i}
+                                                        className={`h-6 w-6 ${
+                                                            i < Math.floor(3.2)
+                                                                ? 'fill-yellow-400 text-yellow-400'
+                                                                : 'text-muted-foreground'
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <span className="text-2xl font-bold">
+                                                {3.2}
+                                            </span>
+                                        </div>
+                                        <div className="text-muted-foreground">
+                                            {t('games.reviews')}
+                                        </div>
+                                    </div>
+
+                                    {/* Game Stats */}
+                                    <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+                                        <div className="rounded-lg bg-card p-4 text-center">
+                                            <Users className="mx-auto mb-2 h-6 w-6 text-primary" />
+                                            <div className="font-semibold">
+                                                {gameData.min_players} -{' '}
+                                                {gameData.max_players}
+                                            </div>
+                                            <div className="text-sm text-muted-foreground">
+                                                {t('games.players')}
+                                            </div>
+                                        </div>
+                                        <div className="rounded-lg bg-card p-4 text-center">
+                                            <Clock className="mx-auto mb-2 h-6 w-6 text-primary" />
+                                            <div className="font-semibold">
+                                                {t('game.min')}:{' '}
+                                                {gameData.min_time} -
+                                                {t('game.box')}:{' '}
+                                                {gameData.box_time} -
+                                                {t('game.max')}:{' '}
+                                                {gameData.max_time}
+                                            </div>
+                                            <div className="text-sm text-muted-foreground">
+                                                {t('games.playTime')}
+                                            </div>
+                                        </div>
+                                        <div className="rounded-lg bg-card p-4 text-center">
+                                            <Calendar className="mx-auto mb-2 h-6 w-6 text-primary" />
+                                            <div className="font-semibold">
+                                                {gameData.pub_year}
+                                            </div>
+                                            <div className="text-sm text-muted-foreground">
+                                                Released
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* User Rating */}
+                                    {/* user && (
+                                        <Card className="mb-6">
+                                            <CardHeader>
+                                                <CardTitle className="text-lg">
+                                                    {t('games.yourRating')}
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="flex items-center gap-4">
+                                                    <StarRating
+                                                        rating={userRating}
+                                                        onRatingChange={
+                                                            handleRatingChange
+                                                        }
+                                                        size="lg"
+                                                        interactive
+                                                    />
+                                                    {userRating > 0 && (
+                                                        <Button
+                                                            variant="outline"
+                                                            onClick={() =>
+                                                                setShowReviewForm(
+                                                                    true,
+                                                                )
+                                                            }
+                                                        >
+                                                            <MessageSquare className="mr-2 h-4 w-4" />
+                                                            {t(
+                                                                'games.addReview',
+                                                            )}
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ) */}
+
+                                    <p className="leading-relaxed text-muted-foreground">
+                                        {gameData.descriptions[locale]}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="container mx-auto px-4 py-8">
+                        <Tabs defaultValue="overview" className="space-y-6">
+                            <TabsList className="grid w-full grid-cols-4">
+                                <TabsTrigger value="overview">
+                                    Overview
+                                </TabsTrigger>
+                                <TabsTrigger value="reviews">
+                                    Reviews
+                                </TabsTrigger>
+                                <TabsTrigger value="ratings">
+                                    Ratings
+                                </TabsTrigger>
+                                <TabsTrigger value="details">
+                                    Details
+                                </TabsTrigger>
+                            </TabsList>
+
+                            <TabsContent value="overview" className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>About This Game</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="mb-4 leading-relaxed text-muted-foreground">
+                                            {gameData.descriptions[locale] ??
+                                                gameData.descriptions['en']}
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            <TabsContent value="reviews" className="space-y-6">
+                                {/* showReviewForm && user && (
+                                    <ReviewForm
+                                        gameId={game.id}
+                                        gameTitle={game.title}
+                                        userRating={userRating}
+                                        onClose={() => setShowReviewForm(false)}
+                                        onSubmit={() =>
+                                            setShowReviewForm(false)
+                                        }
+                                    />
+                                )*/}
+                            </TabsContent>
+
+                            <TabsContent value="ratings" className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>
+                                            Rating Distribution
+                                        </CardTitle>
+                                        <CardDescription>
+                                            How users have rated this game
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-3">
+                                            {/*ratingDistribution.map((item) => (
+                                                <div
+                                                    key={item.stars}
+                                                    className="flex items-center gap-4"
+                                                >
+                                                    <div className="flex w-16 items-center gap-1">
+                                                        <span className="text-sm font-medium">
+                                                            {item.stars}
+                                                        </span>
+                                                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                                    </div>
+                                                    <div className="h-2 flex-1 rounded-full bg-muted">
+                                                        <div
+                                                            className="h-2 rounded-full bg-primary transition-all"
+                                                            style={{
+                                                                width: `${item.percentage}%`,
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div className="w-16 text-right text-sm text-muted-foreground">
+                                                        {item.count} (
+                                                        {item.percentage}%)
+                                                    </div>
+                                                </div>
+                                            ))*/}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            <TabsContent value="details" className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Game Details</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <h4 className="mb-1 text-sm font-semibold text-muted-foreground">
+                                                        Designer
+                                                    </h4>
+                                                    <p>
+                                                        {gameData.designers.join(
+                                                            ', ',
+                                                        )}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <h4 className="mb-1 text-sm font-semibold text-muted-foreground">
+                                                        Publisher
+                                                    </h4>
+                                                    <p>
+                                                        {gameData.publishers.join(
+                                                            ', ',
+                                                        )}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <h4 className="mb-1 text-sm font-semibold text-muted-foreground">
+                                                        Year Published
+                                                    </h4>
+                                                    <p>{gameData.pub_year}</p>
+                                                </div>
+                                                <div>
+                                                    <h4 className="mb-1 text-sm font-semibold text-muted-foreground">
+                                                        Players
+                                                    </h4>
+                                                    <p>
+                                                        {gameData.min_players} -{' '}
+                                                        {gameData.max_players}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <h4 className="mb-1 text-sm font-semibold text-muted-foreground">
+                                                        Playing Time
+                                                    </h4>
+                                                    <p>{gameData.box_time}</p>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                        </Tabs>
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}
+
+Game.layout = (page: JSX.Element) => <AppLayout children={page} />;

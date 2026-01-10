@@ -7,4 +7,6 @@ return [
     'admin' => 'Admin',
     'profile' => 'Profile',
     'logout' => 'Logout',
+    'ludoCH' => 'STLA',
+    'project' => 'Project',
 ];

@@ -12,6 +12,8 @@ import { edit } from '@/routes/profile';
 import { type User } from '@/types';
 import { Link, router } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';
+import { LanguageSelector } from '@/components/language-selector';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 interface UserMenuContentProps {
     user: User;
@@ -34,6 +36,12 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+                <DropdownMenuLabel asChild>
+                    <LanguageSelector />
+                </DropdownMenuLabel>
+                <DropdownMenuLabel>
+                    <ThemeToggle/>
+                </DropdownMenuLabel>
                 <DropdownMenuItem asChild>
                     <Link
                         className="block w-full"
@@ -43,7 +51,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                         onClick={cleanup}
                     >
                         <Settings className="mr-2" />
-                        {t("menu.settings")}
+                        {t('menu.settings')}
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>
@@ -57,7 +65,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     data-test="logout-button"
                 >
                     <LogOut className="mr-2" />
-                    {t("menu.logout")}
+                    {t('menu.logout')}
                 </Link>
             </DropdownMenuItem>
         </>

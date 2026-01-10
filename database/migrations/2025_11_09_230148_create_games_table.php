@@ -23,6 +23,8 @@ return new class extends Migration {
             $table->string('image_blurhash')->nullable();
             $table->integer('pub_year')->nullable();
             $table->integer('min_age')->nullable();
+            $table->integer('min_players')->nullable();
+            $table->integer('max_players')->nullable();
             $table->integer('box_time')->nullable();
             $table->integer('min_time')->nullable();
             $table->integer('max_time')->nullable();

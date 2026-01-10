@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Closure;
 
@@ -16,7 +17,6 @@ class HandleLanguage
     public function handle(Request $request, Closure $next): Response
     {
         app()->setLocale($request->session()->get('locale', config('app.locale')));
-
         return $next($request);
     }
 }

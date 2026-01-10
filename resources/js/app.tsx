@@ -11,15 +11,14 @@ createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) => {
         const pages = import.meta.glob('./pages/**/*.tsx', { eager: true });
-        const page = pages[`./pages/${name}.tsx`] ?? pages[`.Pages/404.tsx`];
-        return page;
+        return pages[`./pages/${name}.tsx`] ?? pages[`.Pages/404.tsx`];
     },
     setup({ el, App, props }) {
         const root = createRoot(el);
 
         root.render(
             <StrictMode>
-                <App {...props} />
+                    <App {...props} />
             </StrictMode>,
         );
     },

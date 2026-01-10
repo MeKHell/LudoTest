@@ -21,6 +21,8 @@ class Language extends Model
 
     public $timestamps = false;
 
+    public $hidden = ['bgg_index', 'pivot'];
+
     /**
      * @return hasMany<Language,Comment>
      */

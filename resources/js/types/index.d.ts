@@ -41,3 +41,30 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Language {
+    code: string;
+    name: string;
+}
+
+export type Translations = Record<string, string>;
+
+export interface Game {
+    bgge_id: string;
+    name: string;
+    thumb_url: string;
+    image_url: string;
+    pub_year?: number;
+    min_age?: number;
+    min_players?: number;
+    max_players?: number;
+    box_time?: number;
+    min_time?: number;
+    max_time?: number;
+    languages: Language[];
+    descriptions: Translations;
+    artists: string[];
+    publishers: string[];
+    designers: string[];
+}
+
