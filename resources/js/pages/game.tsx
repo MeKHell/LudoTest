@@ -1,11 +1,5 @@
-import { JSX, useCallback, useEffect, useMemo, useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
-import { type Game } from '@/types';
 import GameController from '@/actions/App/Http/Controllers/GameController';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Star, Users } from 'lucide-react';
-import { useLang } from '@/hooks/useLang';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Card,
     CardContent,
@@ -13,31 +7,67 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { VersionTable } from '@/components/version-table';
+import { useLang } from '@/hooks/useLang';
+import AppLayout from '@/layouts/app-layout';
+import { game, home } from '@/routes';
+import { type Game } from '@/types';
+import { usePage } from '@inertiajs/react';
+import { Calendar, Clock, LoaderCircle, Star, Users } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export default function Game({ id }: { id: string }) {
-    const { t , locale} = useLang();
-    const keepShort =
-        useCallback((arr: string[] | undefined) => {
-            if (!arr) return '';
+    const { url } = usePage();
+
+    const { t, locale } = useLang();
+    const keepShort = useCallback(
+        (arr: string[] | undefined, empty_string: string) => {
+            if (!arr) return empty_string;
             if (arr.length > 3)
-                return `${arr[Math.floor(Math.random() * arr.length)]} ${t('game.many_others')}`;
+                return `${arr.slice(0, 2).join(', ')} ${t('game.many_others')}`;
             return arr.join(', ');
-        }, [t]);
+        },
+        [t],
+    );
 
     const [gameData, setGameData] = useState<Game>();
     const [versionsData, setVersionsData] = useState<Game[]>([]);
 
-    const shortDesigners: string = useMemo(() => keepShort(gameData?.publishers)
-    , [gameData?.publishers, keepShort])
+    const shortDesigners: string = useMemo(
+        () => keepShort(gameData?.designers, t('game.no_designer')),
+        [gameData?.designers, keepShort, t],
+    );
     const shortPublishers: string = useMemo(
-        () => keepShort(gameData?.publishers),
-        [gameData?.publishers, keepShort],
+        () => keepShort(gameData?.publishers, t('game.no_publisher')),
+        [gameData?.publishers, keepShort, t],
     );
 
-    const languages = useMemo(() => [...new Set(versionsData.flatMap(x =>
-        x.languages.map(y => y.code)))], [versionsData]);
+    const languages = useMemo(
+        () => [
+            ...new Set(
+                versionsData.flatMap((x) => x.languages.map((y) => y.code)),
+            ),
+        ],
+        [versionsData],
+    );
 
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
+    const breadcrumbs = useMemo(() => {
+        const original = [
+            { title: t('game.game'), href: home.url() },
+            { title: gameData?.name ?? t('game.loading'), href: url },
+        ];
+        if (gameData?.parent) {
+            original.splice(1, 0, {
+                title: gameData.parent.name,
+                href: game.get(gameData.parent.bgge_id).url,
+            });
+        }
+        return original;
+    }, [gameData?.name, gameData?.parent, t, url]);
+
+    // Fetches the api
     useEffect(() => {
         (async () => {
             const data: { game: Game; versions: Game[] } = await fetch(
@@ -49,11 +79,9 @@ export default function Game({ id }: { id: string }) {
     }, []);
 
     return (
-        <div className="min-h-screen bg-background">
-            {gameData === undefined ? (
-                <></>
-            ) : (
-                <>
+        <AppLayout breadcrumbs={breadcrumbs}>
+            {gameData ? (
+                <div className="min-h-screen bg-background">
                     <div className="bg-muted/30">
                         <div className="container mx-auto px-4 py-8">
                             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -76,11 +104,8 @@ export default function Game({ id }: { id: string }) {
                                                 {gameData.name}
                                             </h1>
                                             <p className="mb-4 text-muted-foreground">
-                                                by{' '}
-                                                {shortDesigners}{' '}
-                                                •{' '}
-                                                {shortPublishers}{' '}
-                                                • {gameData.pub_year}
+                                                {`${t('game.by')} ${shortDesigners} • `}
+                                                {`${shortPublishers} • ${gameData.pub_year || '-'}`}
                                             </p>
                                         </div>
                                         <Badge
@@ -111,7 +136,7 @@ export default function Game({ id }: { id: string }) {
                                             </span>
                                         </div>
                                         <div className="text-muted-foreground">
-                                            {t('games.reviews')}
+                                            {t('game.reviews')}
                                         </div>
                                     </div>
 
@@ -124,21 +149,16 @@ export default function Game({ id }: { id: string }) {
                                                 {gameData.max_players}
                                             </div>
                                             <div className="text-sm text-muted-foreground">
-                                                {t('games.players')}
+                                                {t('game.players')}
                                             </div>
                                         </div>
                                         <div className="rounded-lg bg-card p-4 text-center">
                                             <Clock className="mx-auto mb-2 h-6 w-6 text-primary" />
                                             <div className="font-semibold">
-                                                {t('game.min')}:{' '}
-                                                {gameData.min_time} -
-                                                {t('game.box')}:{' '}
-                                                {gameData.box_time} -
-                                                {t('game.max')}:{' '}
-                                                {gameData.max_time}
+                                                {gameData.box_time}
                                             </div>
                                             <div className="text-sm text-muted-foreground">
-                                                {t('games.playTime')}
+                                                {t('game.playTime')}
                                             </div>
                                         </div>
                                         <div className="rounded-lg bg-card p-4 text-center">
@@ -147,7 +167,7 @@ export default function Game({ id }: { id: string }) {
                                                 {gameData.pub_year}
                                             </div>
                                             <div className="text-sm text-muted-foreground">
-                                                Released
+                                                {t('game.released')}
                                             </div>
                                         </div>
                                     </div>
@@ -198,32 +218,37 @@ export default function Game({ id }: { id: string }) {
                         </div>
                     </div>
 
-                    <div className="container mx-auto px-4 py-8">
-                        <Tabs defaultValue="overview" className="space-y-6">
+                    <div
+                        className="container mx-auto px-4 py-8"
+                        data-debug-tabs
+                    >
+                        <Tabs defaultValue="versions" className="space-y-6">
                             <TabsList className="grid w-full grid-cols-4">
+                                <TabsTrigger value="versions">
+                                    {t('game.versions')}
+                                </TabsTrigger>
                                 <TabsTrigger value="overview">
-                                    Overview
-                                </TabsTrigger>
-                                <TabsTrigger value="reviews">
-                                    Reviews
-                                </TabsTrigger>
-                                <TabsTrigger value="ratings">
-                                    Ratings
+                                    {t('game.overview')}
                                 </TabsTrigger>
                                 <TabsTrigger value="details">
-                                    Details
+                                    {t('game.details')}
+                                </TabsTrigger>
+                                <TabsTrigger value="reviews">
+                                    {t('game.comments')}
                                 </TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="overview" className="space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>About This Game</CardTitle>
+                                        <CardTitle>
+                                            {t('game.about_it')}
+                                        </CardTitle>
                                     </CardHeader>
                                     <CardContent>
                                         <p className="mb-4 leading-relaxed text-muted-foreground">
                                             {gameData.descriptions[locale] ??
-                                                gameData.descriptions['en']}
+                                                gameData.descriptions['EN']}
                                         </p>
                                     </CardContent>
                                 </Card>
@@ -247,7 +272,7 @@ export default function Game({ id }: { id: string }) {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle>
-                                            Rating Distribution
+                                            {t('game.rating')}
                                         </CardTitle>
                                         <CardDescription>
                                             How users have rated this game
@@ -288,14 +313,16 @@ export default function Game({ id }: { id: string }) {
                             <TabsContent value="details" className="space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Game Details</CardTitle>
+                                        <CardTitle>
+                                            {t('game.details')}
+                                        </CardTitle>
                                     </CardHeader>
                                     <CardContent>
                                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                             <div className="space-y-4">
                                                 <div>
                                                     <h4 className="mb-1 text-sm font-semibold text-muted-foreground">
-                                                        Designer
+                                                        {t('game.designer')}
                                                     </h4>
                                                     <p>
                                                         {gameData.designers.join(
@@ -305,7 +332,7 @@ export default function Game({ id }: { id: string }) {
                                                 </div>
                                                 <div>
                                                     <h4 className="mb-1 text-sm font-semibold text-muted-foreground">
-                                                        Publisher
+                                                        {t('game.publisher')}
                                                     </h4>
                                                     <p>
                                                         {gameData.publishers.join(
@@ -315,13 +342,25 @@ export default function Game({ id }: { id: string }) {
                                                 </div>
                                                 <div>
                                                     <h4 className="mb-1 text-sm font-semibold text-muted-foreground">
-                                                        Year Published
+                                                        {t('game.artist')}
+                                                    </h4>
+                                                    <p>
+                                                        {gameData.artists.join(
+                                                            ', ',
+                                                        )}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <h4 className="mb-1 text-sm font-semibold text-muted-foreground">
+                                                        {t(
+                                                            'game.year_published',
+                                                        )}
                                                     </h4>
                                                     <p>{gameData.pub_year}</p>
                                                 </div>
                                                 <div>
                                                     <h4 className="mb-1 text-sm font-semibold text-muted-foreground">
-                                                        Players
+                                                        {t('game.players')}
                                                     </h4>
                                                     <p>
                                                         {gameData.min_players} -{' '}
@@ -330,22 +369,47 @@ export default function Game({ id }: { id: string }) {
                                                 </div>
                                                 <div>
                                                     <h4 className="mb-1 text-sm font-semibold text-muted-foreground">
-                                                        Playing Time
+                                                        {t('game.playing_time')}
                                                     </h4>
-                                                    <p>{gameData.box_time}</p>
+                                                    <p>
+                                                        {t('game.min')}:{' '}
+                                                        {gameData.min_time} -{' '}
+                                                        {t('game.box')}:{' '}
+                                                        {gameData.box_time} -{' '}
+                                                        {t('game.max')}:{' '}
+                                                        {gameData.max_time}
+                                                    </p>
                                                 </div>
-
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </TabsContent>
+                            <TabsContent value="versions" className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>
+                                            {t('game.versions')}
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <VersionTable
+                                            versionsData={versionsData}
+                                        />
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
                         </Tabs>
                     </div>
-                </>
+                </div>
+            ) : (
+                <div className="flex w-full justify-around">
+                    <div className="text-xl font-semibold">
+                        <LoaderCircle className="mt-10 mr-3 mb-5 size-20 animate-spin" />
+                        Loading
+                    </div>
+                </div>
             )}
-        </div>
+        </AppLayout>
     );
 }
-
-Game.layout = (page: JSX.Element) => <AppLayout children={page} />;

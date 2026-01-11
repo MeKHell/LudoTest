@@ -66,5 +66,6 @@ export interface Game {
     artists: string[];
     publishers: string[];
     designers: string[];
+    parent?: Game;
 }
 

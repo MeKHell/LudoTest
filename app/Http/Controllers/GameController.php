@@ -7,6 +7,7 @@ use App\Models\Comment;
 use App\Models\Game;
 
 use App\Models\Language;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -20,7 +21,7 @@ class GameController extends Controller
 {
     private string $game_formatter = "items.item.{
             bgge_id: xml_attr.id,
-            name: name[?xml_attr.type=='primary']|[0].xml_attr.value,
+            name: ([name][])[?xml_attr.type=='primary']|[0].xml_attr.value,
             thumb_url: thumbnail.value,
             image_url: image.value,
             description: description.value,
@@ -31,58 +32,49 @@ class GameController extends Controller
             box_time: playingtime.xml_attr.value,
             min_time: minplaytime.xml_attr.value,
             max_time: maxplaytime.xml_attr.value,
-            artists: link[?xml_attr.type=='boardgameartist'].{
+            artists: ([link][])[?xml_attr.type=='boardgameartist'].{
                 bgge_id: xml_attr.id,
                 name: xml_attr.value },
-            publishers: link[?xml_attr.type=='boardgamepublisher'].{
+            publishers: ([link][])[?xml_attr.type=='boardgamepublisher'].{
                 bgge_id:xml_attr.id,
                 name: xml_attr.value }
-            designers: link[?xml_attr.type=='boardgamedesigner'].{
+            designers: ([link][])[?xml_attr.type=='boardgamedesigner'].{
                 bgge_id:xml_attr.id,
                 name: xml_attr.value }
             }";
 
-    private string $versions_formatter = "items.item.versions.
-            item[?contains(map(&contains(['French','English','German', 'Italian'], @),
-                link[?xml_attr.type == 'language'].xml_attr.value),`true`)].{
+    private string $versions_formatter = "items.item.versions |
+            ([item][])[?contains(map(&contains(['French','English','German', 'Italian'], @),
+                ([link][])[?xml_attr.type == 'language'].xml_attr.value),`true`)].{
             bgge_id: xml_attr.id,
-            thumbnail: thumbnail.value,
-            image: image.value,
-            languages: link[?xml_attr.type == 'language'].xml_attr.id,
+            thumb_url: thumbnail.value,
+            image_url: image.value,
+            languages: ([link][])[?xml_attr.type == 'language'].xml_attr.id,
             name: canonicalname.xml_attr.value,
             pub_year: yearpublished.xml_attr.value,
-            artists: link[?xml_attr.type=='boardgameartist'].{
+            artists: ([link][])[?xml_attr.type=='boardgameartist'].{
                 bgge_id: xml_attr.id,
                 name: xml_attr.value },
-            publishers: link[?xml_attr.type=='boardgamepublisher'].{
+            publishers: ([link][])[?xml_attr.type=='boardgamepublisher'].{
                 bgge_id:xml_attr.id,
                 name: xml_attr.value },
-            designers: link[?xml_attr.type=='boardgamedesigner'].{
+            designers: ([link][])[?xml_attr.type=='boardgamedesigner'].{
                 id:xml_attr.id,
                 name: xml_attr.value }
             }";
 
-    private function addGame(array $game, Collection $avail_languages, string $version_of = null) {
+    private function addGame(array $game, Collection $avail_languages, ?string  $version_of) {
         // Extracting data for fast reuse
         $id = $game['bgge_id'];
         $artists = extract_subarray('artists', $game);
         $publishers = extract_subarray('publishers', $game);
         $designers = extract_subarray('designers', $game);
         $languages = extract_subarray('languages', $game);
-        $description = $game['en_description'] ?? null;
-
-
-        // Remove exracted vars from game array (for auto-addition)
-        unset($game['en_description']);
-        unset($game['artists']);
-        unset($game['publishers']);
-        unset($game['designers']);
-        unset($game['languages']);
+        $description = $game['description'] ?? null;
 
         // Adding the game parent if needed
-        if ($version_of) {
-            $game['version_of'] = $version_of;
-        }
+        $game['version_of'] = $version_of;
+        $game['last_sync_at'] = now();
 
         //Adding the game
         $db_game = Game::updateOrCreate(['bgge_id' => $game['bgge_id']], $game);
@@ -101,8 +93,8 @@ class GameController extends Controller
                 array_merge($array, ['role' => 'Designer', 'updated_at' => now(), 'created_at' => now()]), $designers);
         }
 
-        // Binds the roles to the game
-        $roles = $artists + $publishers + $designers;
+            // Binds the roles to the game
+        $roles = $designers + $artists + $publishers ;
         if ($roles && count($roles) > 0){
             $db_game->worked_on()->upsert( $roles, ['bgge_id', 'name', 'role'], ['bgge_id', 'name', 'role']);
         }
@@ -111,10 +103,10 @@ class GameController extends Controller
         if ($description) {
             $desc_hash = hash('sha256', $description);
             $game['description_hash'] = $desc_hash;
-            $db_game->descriptions()->upsert([
-                    'lang' => 'en',
-                    'en_hash' => $desc_hash,
-                    'description' => $description], ['lang', 'game_id']);
+            $description = lt_translate($description);
+            $descriptions = array_map((fn($lang,  $text): array =>
+            ['en_hash' => $desc_hash, 'lang' => $lang, 'description' => $text]),array_keys($description), $description);
+            $db_game->descriptions()->upsert($descriptions, ['lang', 'game_id']);
         }
 
         // Binds the languages to the game
@@ -127,43 +119,40 @@ class GameController extends Controller
 
     private function getGameFromDB(string $id)
     {
-        $game = Game::find($id);
-        $versions = GameResource::collection($game->versions()->get());
+        Log::debug("Getting game ". $id . " from database");
+        $game = Game::with(['worked_on', 'descriptions', 'comments', 'parent'])->find($id);
+        $versions = $game->versions()->get(['bgge_id', 'name', 'pub_year', 'thumb_url']);
         return ['game' => $game->toResource(), 'versions' => $versions];
     }
 
-    private function getGame(string $id){
-        // DUE TO RECURSIVITY: DO NOT SET UNDER SUBMINUTE
+    private function ensureGameInDB(string $id){
         $game = Game::whereKey($id)
-                ->where('updated_at', '>', now()->subMinute())
                 ->first();
-        if ($game) {
+        if ($game?->last_sync_at->isLastWeek()) {
             Log::debug("Game " . $id . " found in database.");
-            return get_object_vars($id);
+            return null;
             }
         Log::debug("Game " . $id . " not found in database.");
 
         // Querying required data
         $languages = Language::get()->keyBy('bgg_index');
-        $bgg_res = bgg_query('thing', ['id' => $id, 'versions' => 1]);
+        $bgg_res = bgg_query('thing', ['id' => $game?->parent()->getParentKey() ?? $id, 'versions' => 1]);
+        Log::debug(json_encode($bgg_res));
         // Extracting from BGG response
         $jmes = new CompilerRuntime('storage/jmespath');
         $game = $jmes($this->game_formatter, $bgg_res);
         if (!$game){
-            abort(404);
+            return $bgg_res;
         }
         $versions = $jmes($this->versions_formatter, $bgg_res);
 
-        // Translate the description
-        $game['description'] = lt_translate($game['description']);
-
         // Add the game and its versions
-        $this->addGame($game, $languages);
+        $this->addGame($game, $languages, null);
         foreach ($versions as $version){
             $this->addGame($version, $languages, $game['bgge_id']);
         }
         Log::debug("Game " . $id . " added to database.");
-        return $this->getGameFromDB($id);
+        return null;
     }
 
     public function getTrending(): JsonResponse
@@ -217,6 +206,11 @@ class GameController extends Controller
 
     public function get(string $id): JsonResponse
     {
-        return response()->json($this->getGame($id));
+
+        if ($res = $this->ensureGameInDB($id)){
+            return response()->json($res);
+        }
+
+        return response()->json($this->getGameFromDB($id));
     }
 }

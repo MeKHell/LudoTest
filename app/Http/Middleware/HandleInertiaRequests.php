@@ -37,7 +37,6 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        Log::debug(app()->getLocale());
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
         return [
             ...parent::share($request),

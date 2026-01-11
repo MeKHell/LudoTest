@@ -22,6 +22,7 @@ erDiagram
         string bgge_id PK "bgge stands for bgg extended: bgg -> number, others -> string "
         timestamp created_at
         timestamp updated_at
+        timestamp last_sync_at
         string thumb_url "Null"
         string thumb_hash "Null"
         string thumb_blurhash "Null"
@@ -39,9 +40,18 @@ erDiagram
         string version_of FK "Null"
         string description_hash
     }
-    GameLang {
-        string game_id FK, PK
-        string lang_id FK, PK
+    Question {
+        id id PK
+        string question_id
+        string lang FK
+        longText question
+    }
+    Answer {
+        id id PK
+        id writer_id FK
+        string question_id
+        string game_id FK
+        int answer
     }
     Description {
         id id PK
@@ -73,11 +83,14 @@ erDiagram
     User 1 -- 0+ Comment : writes
     Comment 1 -- 0+ Game : on
     Game 1 -- one or zero Game : "version of"
-    Game 1 -- 1+ GameLang : "is available in"
-    Game 1 -- 1+ Description: "described by"
+    Game 1+ -- 0+ Lang : "is available in"
+    Game 1+ -- 1 Description: "described by"
     Game 0+ -- 1 GameRole: "worked on"
-    Lang 0+ -- 0+ GameLang: "is in"
     Comment 1 -- 1+ Lang: "is in"
     User 1 -- 1+ Lang: speaks
     Description 1 -- 1+ Lang: "written in"
+    Answer 1 -- 0+ Game: "evaluated on"
+    Answer 1 -- 0+ Question: "answer of"
+    Question 1 -- 0+ Lang: "written in"
+    User 1+ -- 1+ Answer: "written by"
 

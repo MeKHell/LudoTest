@@ -14,6 +14,7 @@ return new class extends Migration {
         Schema::create('games', function (Blueprint $table) {
             $table->string("bgge_id");
             $table->timestamps();
+            $table->timestamp("last_sync_at");
             $table->string('name');
             $table->string('thumb_url')->nullable();
             $table->string('thumb_hash')->nullable();
