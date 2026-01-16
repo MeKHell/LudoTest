@@ -38,33 +38,39 @@ erDiagram
         int max_time "Null"
         string name
         string version_of FK "Null"
-        string description_hash
+        string desc_tl_id FK
+    }
+    TranslationKey {
+        id id PK
+        string hash "Unique"
+        string context "Null"
+    }
+    Translation {
+        id id PK
+        id translation_id FK
+        string lang FK
+        text text
     }
     Question {
         id id PK
         string question_id
-        string lang FK
         longText question
+        id translation_id FK
+        int maxVal "Null"
+        int minVal "Null"
     }
     Answer {
         id id PK
         id writer_id FK
-        string question_id
+        string question_id FK
         string game_id FK
         int answer
-    }
-    Description {
-        id id PK
-        string game_id FK
-        string lang FK
-        string en_hash
-        LongText description
     }
     Comment {
         id id PK
         timestamp created_at
         timestamp updated_at
-        LongText content
+        id translation_id FK
         string lang FK
         string game_id FK
         id writer_id FK
@@ -84,13 +90,14 @@ erDiagram
     Comment 1 -- 0+ Game : on
     Game 1 -- one or zero Game : "version of"
     Game 1+ -- 0+ Lang : "is available in"
-    Game 1+ -- 1 Description: "described by"
     Game 0+ -- 1 GameRole: "worked on"
     Comment 1 -- 1+ Lang: "is in"
     User 1 -- 1+ Lang: speaks
-    Description 1 -- 1+ Lang: "written in"
     Answer 1 -- 0+ Game: "evaluated on"
     Answer 1 -- 0+ Question: "answer of"
-    Question 1 -- 0+ Lang: "written in"
     User 1+ -- 1+ Answer: "written by"
-
+    Translation 1 -- 1+ Lang: "translated to"
+    TranslationKey 1 -- 1+ Translation: "Translated by"
+    Game 1 -- 1 TranslationKey: "description translation"
+    Comment 1 -- 1 TranslationKey: "commment translation"
+    Question 1 -- 1 TranslationKey: "question translation"
