@@ -8,6 +8,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
+/**
+ * @mixin IdeHelperUser
+ */
 class User extends Authenticatable
 {use HasFactory;
     use Notifiable;

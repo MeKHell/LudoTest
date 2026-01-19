@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperLanguage
+ */
 class Language extends Model
 {
     /** @use HasFactory<\Database\Factories\LanguageFactory> */
@@ -33,10 +36,6 @@ class Language extends Model
 
     public function speaked_by(): HasMany {
         return $this->hasMany(User::class, 'lang');
-    }
-
-    public function descriptions(): HasMany {
-        return $this->hasMany(Description::class, 'lang');
     }
 
     public function games(): BelongsToMany

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Game;
+use App\Models\TranslationKey;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,7 +13,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('games', function (Blueprint $table) {
-            $table->string("bgge_id");
+            $table->string("bgge_id")->primary();
             $table->timestamps();
             $table->timestamp("last_sync_at");
             $table->string('name');
@@ -29,10 +30,8 @@ return new class extends Migration {
             $table->integer('box_time')->nullable();
             $table->integer('min_time')->nullable();
             $table->integer('max_time')->nullable();
-            $table->foreignIdFor(Game::class, 'version_of')->nullable();
-            $table->string('description_hash')->nullable(); // sha256
-            // $table->fullText('description');
-            // $table->fullText('name');
+            $table->foreignIdFor(Game::class, 'version_of')->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(TranslationKey::class, 'translation_id')->nullable()->constrained()->cascadeOnDelete();
         });
     }
 

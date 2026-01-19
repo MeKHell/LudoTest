@@ -17,7 +17,7 @@ return new class extends Migration
             $table->timestamps();
             $table->string('role'); // Can be: Publisher, Designer, Artist
             $table->string("name");
-            $table->foreignIdFor(Game::class, 'bgge_id');
+            $table->foreignIdFor(Game::class, 'bgge_id')->constrained('games', 'bgge_id')->cascadeOnDelete();
             $table->unique(["bgge_id", "name", 'role']);
         });
     }

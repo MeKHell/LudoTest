@@ -2,7 +2,6 @@
 
 namespace App;
 
-use Illuminate\Support\Facades\Log;
 
 if(!function_exists('xmlToArray')){
     function xmlToArray(\SimpleXMLElement $xml): array
@@ -82,6 +81,6 @@ if (!function_exists('extract_subarray')) {
 if (!function_exists('lt_translate')) {
     function lt_translate(string $text, string $lang_code = 'EN'): array {
         // TODO implement translation
-        return [$lang_code => $text];
+        return ['language_code' => $lang_code, 'text' => $text];
     }
 }

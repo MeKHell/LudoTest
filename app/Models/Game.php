@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperGame
+ */
 class Game extends Model
 {
     /** @use HasFactory<\Database\Factories\GameFactory> */
@@ -26,7 +29,7 @@ class Game extends Model
     ];
 
 
-    protected $hidden = ['updated_at', 'created_at', 'last_sync_at', 'thumb_hash', 'thumb_blurhash', 'image_hash', 'image_blurhash'];
+    protected $hidden = ['updated_at', 'created_at', 'thumb_hash', 'thumb_blurhash', 'image_hash', 'image_blurhash'];
 
     /**
      * @return HasOne<Language,Game>
@@ -54,11 +57,10 @@ class Game extends Model
         return $this->hasMany(GameRole::class, 'bgge_id', 'bgge_id');
     }
 
-    public function descriptions(): HasMany
+    public function translationKey(): BelongsTo
     {
-        return $this->hasMany(Description::class, 'game_id', 'bgge_id');
+        return $this->belongsTo(TranslationKey::class, "translation_id");
     }
-
     public function versions(): HasMany
     {
         return $this->hasMany(Game::class, 'version_of', 'bgge_id');

@@ -211,7 +211,7 @@ export default function Game({ id }: { id: string }) {
                                     ) */}
 
                                     <p className="leading-relaxed text-muted-foreground">
-                                        {gameData.descriptions[locale]}
+                                        {locale && gameData?.descriptions?.[locale]}
                                     </p>
                                 </div>
                             </div>
@@ -247,8 +247,12 @@ export default function Game({ id }: { id: string }) {
                                     </CardHeader>
                                     <CardContent>
                                         <p className="mb-4 leading-relaxed text-muted-foreground">
-                                            {gameData.descriptions[locale] ??
-                                                gameData.descriptions['EN']}
+                                            {
+                                                (locale && gameData?.descriptions?.[
+                                                    locale?.toUpperCase()
+                                                ]) || gameData?.descriptions?.['EN']
+                                                || t('game.missing_translation')
+                                            }
                                         </p>
                                     </CardContent>
                                 </Card>

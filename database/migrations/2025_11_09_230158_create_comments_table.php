@@ -2,6 +2,7 @@
 
 use App\Models\Game;
 use App\Models\Language;
+use App\Models\TranslationKey;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -17,11 +18,11 @@ return new class extends Migration {
             $table->id();
             $table->timestamps();
             $table->longText('content');
-            $table->foreignIdFor(Language::class, 'lang');
-            $table->foreignIdFor(Game::class, 'game_id');
-            $table->foreignIdFor(User::class, 'writer');
+            $table->foreignIdFor(TranslationKey::class, 'translation_id');
+            $table->foreignIdFor(Language::class, 'lang')->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(Game::class, 'game_id')->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(User::class, 'writer')->constrained()->cascadeOnDelete();
             $table->foreignIdFor(User::class, 'editor')->nullable(true);
-            //$table->fullText('content');
         });
     }
 

@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\GameResource;
 use App\Models\Comment;
 use App\Models\Game;
 
 use App\Models\Language;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\TranslationKey;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Log;
 use JmesPath\CompilerRuntime;
 use function App\bgg_query;
 use function App\extract_subarray;
-use function App\lt_translate;
 
 class GameController extends Controller
 {
@@ -65,7 +64,6 @@ class GameController extends Controller
 
     private function addGame(array $game, Collection $avail_languages, ?string  $version_of) {
         // Extracting data for fast reuse
-        $id = $game['bgge_id'];
         $artists = extract_subarray('artists', $game);
         $publishers = extract_subarray('publishers', $game);
         $designers = extract_subarray('designers', $game);
@@ -101,12 +99,12 @@ class GameController extends Controller
 
         // Binds the description to the game
         if ($description) {
-            $desc_hash = hash('sha256', $description);
-            $game['description_hash'] = $desc_hash;
-            $description = lt_translate($description);
-            $descriptions = array_map((fn($lang,  $text): array =>
-            ['en_hash' => $desc_hash, 'lang' => $lang, 'description' => $text]),array_keys($description), $description);
-            $db_game->descriptions()->upsert($descriptions, ['lang', 'game_id']);
+            $tk = TranslationKeyController::ADD($description, "EN", "game_description");
+            $db_game->translationKey()->associate($tk);
+            $db_game->save();
+        } else if ($db_game->parent()->select(['translation_id'])->first()){
+            $db_game = $db_game->translationKey()->associate($db_game->parent()->first()->translation_id);
+            $db_game->save();
         }
 
         // Binds the languages to the game
@@ -120,7 +118,7 @@ class GameController extends Controller
     private function getGameFromDB(string $id)
     {
         Log::debug("Getting game ". $id . " from database");
-        $game = Game::with(['worked_on', 'descriptions', 'comments', 'parent'])->find($id);
+        $game = Game::with(['worked_on', 'translationKey', 'comments', 'parent'])->find($id);
         $versions = $game->versions()->get(['bgge_id', 'name', 'pub_year', 'thumb_url']);
         return ['game' => $game->toResource(), 'versions' => $versions];
     }
@@ -128,7 +126,7 @@ class GameController extends Controller
     private function ensureGameInDB(string $id){
         $game = Game::whereKey($id)
                 ->first();
-        if ($game?->last_sync_at->isLastWeek()) {
+        if ($game?->last_sync_at->isAfter(now()->minus(weeks: 1))) {
             Log::debug("Game " . $id . " found in database.");
             return null;
             }
@@ -137,7 +135,6 @@ class GameController extends Controller
         // Querying required data
         $languages = Language::get()->keyBy('bgg_index');
         $bgg_res = bgg_query('thing', ['id' => $game?->parent()->getParentKey() ?? $id, 'versions' => 1]);
-        Log::debug(json_encode($bgg_res));
         // Extracting from BGG response
         $jmes = new CompilerRuntime('storage/jmespath');
         $game = $jmes($this->game_formatter, $bgg_res);
