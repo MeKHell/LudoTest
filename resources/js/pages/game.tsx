@@ -16,6 +16,7 @@ import { type Game } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { Calendar, Clock, LoaderCircle, Star, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CommentForm } from '@/components/CommentForm';
 
 export default function Game({ id }: { id: string }) {
     const { url } = usePage();
@@ -211,7 +212,8 @@ export default function Game({ id }: { id: string }) {
                                     ) */}
 
                                     <p className="leading-relaxed text-muted-foreground">
-                                        {locale && gameData?.descriptions?.[locale]}
+                                        {locale &&
+                                            gameData?.descriptions?.[locale]}
                                     </p>
                                 </div>
                             </div>
@@ -223,7 +225,7 @@ export default function Game({ id }: { id: string }) {
                         data-debug-tabs
                     >
                         <Tabs defaultValue="versions" className="space-y-6">
-                            <TabsList className="grid w-full grid-cols-4">
+                            <TabsList className="grid w-full grid-cols-5">
                                 <TabsTrigger value="versions">
                                     {t('game.versions')}
                                 </TabsTrigger>
@@ -233,49 +235,65 @@ export default function Game({ id }: { id: string }) {
                                 <TabsTrigger value="details">
                                     {t('game.details')}
                                 </TabsTrigger>
-                                <TabsTrigger value="reviews">
+                                <TabsTrigger value="comments">
                                     {t('game.comments')}
+                                </TabsTrigger>
+                                <TabsTrigger value="ratings">
+                                    {t('game.ratings')}
                                 </TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="overview" className="space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>
+                                        <CardTitle
+                                            className={
+                                                'rounded bg-white/30 px-2 py-1'
+                                            }
+                                        >
                                             {t('game.about_it')}
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent>
                                         <p className="mb-4 leading-relaxed text-muted-foreground">
-                                            {
-                                                (locale && gameData?.descriptions?.[
+                                            {(locale &&
+                                                gameData?.descriptions?.[
                                                     locale?.toUpperCase()
-                                                ]) || gameData?.descriptions?.['EN']
-                                                || t('game.missing_translation')
-                                            }
+                                                ]) ||
+                                                gameData?.descriptions?.[
+                                                    'EN'
+                                                ] ||
+                                                t('game.missing_translation')}
                                         </p>
                                     </CardContent>
                                 </Card>
                             </TabsContent>
 
-                            <TabsContent value="reviews" className="space-y-6">
-                                {/* showReviewForm && user && (
-                                    <ReviewForm
-                                        gameId={game.id}
-                                        gameTitle={game.title}
-                                        userRating={userRating}
-                                        onClose={() => setShowReviewForm(false)}
-                                        onSubmit={() =>
-                                            setShowReviewForm(false)
-                                        }
-                                    />
-                                )*/}
+                            <TabsContent value="comments" className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle
+                                            className={
+                                                'rounded bg-white/30 px-2 py-1'
+                                            }
+                                        >
+                                            {t('game.comments')}
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <CommentForm gameId={id} />
+                                    </CardContent>
+                                </Card>
                             </TabsContent>
 
                             <TabsContent value="ratings" className="space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>
+                                        <CardTitle
+                                            className={
+                                                'rounded bg-white/30 px-2 py-1'
+                                            }
+                                        >
                                             {t('game.rating')}
                                         </CardTitle>
                                         <CardDescription>
@@ -284,6 +302,7 @@ export default function Game({ id }: { id: string }) {
                                     </CardHeader>
                                     <CardContent>
                                         <div className="space-y-3">
+                                            HELLLO
                                             {/*ratingDistribution.map((item) => (
                                                 <div
                                                     key={item.stars}
@@ -313,11 +332,14 @@ export default function Game({ id }: { id: string }) {
                                     </CardContent>
                                 </Card>
                             </TabsContent>
-
                             <TabsContent value="details" className="space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>
+                                        <CardTitle
+                                            className={
+                                                'rounded bg-white/30 px-2 py-1'
+                                            }
+                                        >
                                             {t('game.details')}
                                         </CardTitle>
                                     </CardHeader>
@@ -392,7 +414,11 @@ export default function Game({ id }: { id: string }) {
                             <TabsContent value="versions" className="space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>
+                                        <CardTitle
+                                            className={
+                                                'rounded bg-white/30 px-2 py-1'
+                                            }
+                                        >
                                             {t('game.versions')}
                                         </CardTitle>
                                     </CardHeader>

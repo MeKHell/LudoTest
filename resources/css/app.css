@@ -41,6 +41,9 @@
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
 
+    --color-constructive: var(--constructive);
+    --color-constructive-foreground: var(--constructive-foreground);
+
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
@@ -97,6 +100,8 @@
     --accent-foreground: oklch(0.25 0.02 15); /* Dark brown */
     --destructive: oklch(0.6 0.2 25); /* Warm red */
     --destructive-foreground: oklch(0.98 0.01 15); /* White */
+    --constructive: oklch(0.6 0.2 145);
+    --constructive-foreground: oklch(0.98 0.01 135); /* White */
     --border: oklch(0.85 0.03 15); /* Light brown border */
     --input: oklch(0.98 0.01 15); /* White input */
     --ring: oklch(0.75 0.08 15 / 0.5); /* Soft pink ring */
@@ -133,6 +138,8 @@
     --accent-foreground: oklch(0.95 0.01 15); /* Light text */
     --destructive: oklch(0.5 0.15 25); /* Dark red */
     --destructive-foreground: oklch(0.95 0.01 15); /* Light text */
+    --constructive: oklch(0.5 0.12 145);
+    --constructive-foreground: oklch(0.95 0.01 135); /* Light text */
     --border: oklch(0.3 0.03 15); /* Dark border */
     --input: oklch(0.25 0.02 15); /* Dark input */
     --ring: oklch(0.65 0.06 15 / 0.5); /* Medium pink ring */

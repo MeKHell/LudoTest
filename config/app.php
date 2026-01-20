@@ -73,9 +73,9 @@ return [
      * | set to any locale for which you plan to have translation strings.
      * |
      */
-    'locale' => 'de',
-    'available_locales' => ['de', 'fr', 'en', 'it'],
-    'fallback_locale' => 'de',
+    'locale' => 'EN',
+    'available_locales' => ['DE', 'FR', 'EN', 'IT'],
+    'fallback_locale' => 'DE',
     'faker_locale' => 'de_CH',
 
     /*
@@ -112,4 +112,6 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+    'max_comment_length' => env('APP_MAX_COMMENT_LENGTH', 1024),
 ];

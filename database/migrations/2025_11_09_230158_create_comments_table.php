@@ -17,12 +17,12 @@ return new class extends Migration {
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->longText('content');
-            $table->foreignIdFor(TranslationKey::class, 'translation_id');
+            $table->foreignIdFor(TranslationKey::class, 'translation_id')->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Language::class, 'lang')->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Game::class, 'game_id')->constrained()->cascadeOnDelete();
             $table->foreignIdFor(User::class, 'writer')->constrained()->cascadeOnDelete();
             $table->foreignIdFor(User::class, 'editor')->nullable(true);
+            $table->unique(['writer', 'game_id']);
         });
     }
 

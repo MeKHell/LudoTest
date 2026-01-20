@@ -62,7 +62,7 @@ export function VersionTable({ versionsData }: { versionsData: Game[] }) {
                         <TableHead className="flex justify-between">
                             <div>{t('game.language')}</div>
                             <DropdownMenu>
-                                <DropdownMenuTrigger>
+                                <DropdownMenuTrigger asChild>
                                     <Button variant="outline">
                                         <Search />
                                     </Button>

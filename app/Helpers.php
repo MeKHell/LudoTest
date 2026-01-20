@@ -84,3 +84,9 @@ if (!function_exists('lt_translate')) {
         return ['language_code' => $lang_code, 'text' => $text];
     }
 }
+
+if (!function_exists('rm_blank_lines')) {
+    function rm_blank_lines(string $text): string {
+        return preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $text);
+    }
+}

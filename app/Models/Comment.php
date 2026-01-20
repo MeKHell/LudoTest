@@ -44,9 +44,9 @@ class Comment extends Model
     /**
      * @return HasOne<Language,Comment>
      */
-    public function writtenIn(): HasOne
+    public function writtenIn(): BelongsTo
     {
-        return $this->hasOne(Language::class, 'lang');
+        return $this->belongsTo(Language::class, 'lang');
     }
 
 }

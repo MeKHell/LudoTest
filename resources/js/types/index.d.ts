@@ -62,7 +62,7 @@ export interface Game {
     min_time?: number;
     max_time?: number;
     languages: Language[];
-    descriptions: Translations;
+    descriptions?: Translations;
     artists: string[];
     publishers: string[];
     designers: string[];
