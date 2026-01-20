@@ -78,3 +78,11 @@ export interface Comment {
     writer: string;
     editor?: string;
 }
+
+export interface Question {
+    id: number;
+    translations: Translations;
+    max_val?: number;
+    min_val?: number;
+    original_lang: Language;
+}

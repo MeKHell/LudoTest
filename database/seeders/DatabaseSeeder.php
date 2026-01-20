@@ -17,14 +17,17 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'password' => 'password',
-                'email_verified_at' => now(),
-            ]
-        );
+        for ($i = 0; $i < 10; ++$i) {
+            User::firstOrCreate(
+                    ['email' => 'test'.$i.'@example.com'],
+                    [
+                            'name' => 'Test User'.$i,
+                            'password' => 'password',
+                            'email_verified_at' => now(),
+                    ]
+            );
+        }
         $this->call(LanguageSeeder::class);
+        $this->call(QuestionSeeder::class);
     }
 }

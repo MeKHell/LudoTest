@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,8 +19,9 @@ class SetLang extends Controller
                 $lang = Config::get('app.fallback_locale');
             }
         }
+
         // Permanent memory
-        (new UserController())->setlocale(Auth::user()->id, $lang);
+        User::find(Auth::id())->update(['lang' => $lang]);
         $request->session()->put('locale', $lang);
 
         // One shot memory

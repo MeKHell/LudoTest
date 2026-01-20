@@ -18,6 +18,7 @@ import { Calendar, Clock, Star, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import CommentManager from '@/components/CommentManager';
 import Loading from '@/components/loading';
+import { RatingList } from '@/components/RatingList';
 
 export default function Game({ id }: { id: string }) {
     const { url } = usePage();
@@ -298,37 +299,12 @@ export default function Game({ id }: { id: string }) {
                                             {t('game.rating')}
                                         </CardTitle>
                                         <CardDescription>
-                                            How users have rated this game
+                                            {t('game.rating_description')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         <div className="space-y-3">
-                                            HELLLO
-                                            {/*ratingDistribution.map((item) => (
-                                                <div
-                                                    key={item.stars}
-                                                    className="flex items-center gap-4"
-                                                >
-                                                    <div className="flex w-16 items-center gap-1">
-                                                        <span className="text-sm font-medium">
-                                                            {item.stars}
-                                                        </span>
-                                                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                                    </div>
-                                                    <div className="h-2 flex-1 rounded-full bg-muted">
-                                                        <div
-                                                            className="h-2 rounded-full bg-primary transition-all"
-                                                            style={{
-                                                                width: `${item.percentage}%`,
-                                                            }}
-                                                        />
-                                                    </div>
-                                                    <div className="w-16 text-right text-sm text-muted-foreground">
-                                                        {item.count} (
-                                                        {item.percentage}%)
-                                                    </div>
-                                                </div>
-                                            ))*/}
+                                            <RatingList gameId={id}/>
                                         </div>
                                     </CardContent>
                                 </Card>

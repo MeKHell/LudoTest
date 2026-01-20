@@ -16,10 +16,11 @@ return new class extends Migration
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignIdFor(Language::class, 'lang');
+            $table->foreignIdFor(Language::class, 'lang')->nullable()->constrained();
             $table->foreignIdFor(TranslationKey::class, "translation_id")->constrained()->cascadeOnDelete();
             $table->integer('max_val')->nullable();
             $table->integer('min_val')->nullable();
+            $table->boolean('is_enabled')->default(true);
         });
     }
 

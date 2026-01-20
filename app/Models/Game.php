@@ -52,6 +52,11 @@ class Game extends Model
         return $this->hasMany(Comment::class, 'game_id', 'bgge_id');
     }
 
+    public function answers(): HasMany
+    {
+        return $this->hasMany(Answer::class, 'game_id', 'bgge_id');
+    }
+
 
     public function worked_on(): HasMany {
         return $this->hasMany(GameRole::class, 'bgge_id', 'bgge_id');
