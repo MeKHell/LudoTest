@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
@@ -17,12 +19,14 @@ class Comment extends Model
 
     protected $guarded = ['created_at', 'updated_at'];
 
+    protected $with = ['translations','writtenIn', 'writer'];
+
     /**
      * @return BelongsTo<User,Comment>
      */
     public function writer(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'writer_id');
+        return $this->belongsTo(User::class, 'writer');
     }
 
     /**
@@ -30,7 +34,7 @@ class Comment extends Model
      */
     public function editor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'editor_id');
+        return $this->belongsTo(User::class, 'editor');
     }
 
     /**
@@ -49,4 +53,8 @@ class Comment extends Model
         return $this->belongsTo(Language::class, 'lang');
     }
 
+    public function translations(): BelongsTo
+    {
+        return $this->belongsTo(TranslationKey::class, 'translation_id');
+    }
 }

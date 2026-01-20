@@ -14,9 +14,10 @@ import AppLayout from '@/layouts/app-layout';
 import { game, home } from '@/routes';
 import { type Game } from '@/types';
 import { usePage } from '@inertiajs/react';
-import { Calendar, Clock, LoaderCircle, Star, Users } from 'lucide-react';
+import { Calendar, Clock, Star, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CommentForm } from '@/components/CommentForm';
+import CommentManager from '@/components/CommentManager';
+import Loading from '@/components/loading';
 
 export default function Game({ id }: { id: string }) {
     const { url } = usePage();
@@ -77,7 +78,7 @@ export default function Game({ id }: { id: string }) {
             setGameData(() => data.game);
             setVersionsData(() => data.versions);
         })();
-    }, []);
+    }, [id]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -281,7 +282,7 @@ export default function Game({ id }: { id: string }) {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        <CommentForm gameId={id} />
+                                        <CommentManager gameId={id} />
                                     </CardContent>
                                 </Card>
                             </TabsContent>
@@ -433,12 +434,7 @@ export default function Game({ id }: { id: string }) {
                     </div>
                 </div>
             ) : (
-                <div className="flex w-full justify-around">
-                    <div className="text-xl font-semibold">
-                        <LoaderCircle className="mt-10 mr-3 mb-5 size-20 animate-spin" />
-                        Loading
-                    </div>
-                </div>
+                <Loading/>
             )}
         </AppLayout>
     );

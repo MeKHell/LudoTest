@@ -69,3 +69,12 @@ export interface Game {
     parent?: Game;
 }
 
+export interface Comment {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    original_lang: Language;
+    comment: Translations;
+    writer: string;
+    editor?: string;
+}

@@ -55,12 +55,16 @@ export function VersionTable({ versionsData }: { versionsData: Game[] }) {
             <Table className="rounded border">
                 <TableHeader className="rounded-tl-md border bg-background">
                     <TableRow>
-                        <TableHead className="rounded-tl-md border border-black">
+                        <TableHead className="rounded-tl-md border-r">
                             {t('game.image')}
                         </TableHead>
-                        <TableHead>{t('game.name')}</TableHead>
-                        <TableHead className="flex justify-between">
-                            <div>{t('game.language')}</div>
+                        <TableHead className="border-r">
+                            {t('game.name')}
+                        </TableHead>
+                        <TableHead className="flex justify-between border-r">
+                            <div className="content-center">
+                                {t('game.language')}
+                            </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="outline">
@@ -103,7 +107,11 @@ export function VersionTable({ versionsData }: { versionsData: Game[] }) {
                             role="link"
                             tabIndex={0}
                             className="cursor-pointer hover:bg-muted/50 even:hover:bg-primary/50"
-                            onClick={() => router.get(game.get({id: version.bgge_id}).url)}
+                            onClick={() =>
+                                router.get(
+                                    game.get({ id: version.bgge_id }).url,
+                                )
+                            }
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
@@ -118,17 +126,19 @@ export function VersionTable({ versionsData }: { versionsData: Game[] }) {
                                     <img
                                         src={version.thumb_url}
                                         alt={version.name}
-                                        className="h-full w-32 object-cover"
+                                        className="size-32 h-full object-cover"
                                     />
                                 ) : (
-                                    <ImageOff />
+                                    <ImageOff className="size-32" />
                                 )}
                             </TableCell>
                             <TableCell className="font-semibold">
                                 {version.name}
                             </TableCell>
                             <TableCell>
-                                {version.languages.map((x) => x.name).join(', ')}
+                                {version.languages
+                                    .map((x) => x.name)
+                                    .join(', ')}
                             </TableCell>
                             <TableCell>
                                 {version.pub_year

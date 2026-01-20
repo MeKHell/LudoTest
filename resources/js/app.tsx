@@ -25,6 +25,11 @@ createInertiaApp({
     progress: {
         color: '#4B5563',
     },
+    defaults: {
+        form: {
+            recentlySuccessfulDuration: 4000
+        }
+    }
 });
 
 // This will set light / dark mode on load...
