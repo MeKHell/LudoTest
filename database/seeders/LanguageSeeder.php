@@ -14,16 +14,16 @@ class LanguageSeeder extends Seeder
      */
     public function run(): void
     {
-        Language::create(['code' => 'FR',
+        Language::create(['code' => 'fr',
                     'bgg_index' => '2187',
                     'name' => 'Français']);
-        Language::create(['code' => 'EN',
+        Language::create(['code' => 'en',
                         'bgg_index' => '2184',
                         'name' => 'English']);
-        Language::create(['code' => 'DE',
+        Language::create(['code' => 'de',
                         'bgg_index' => '2188',
                         'name' => 'Deutsch']);
-        Language::create(['code' => 'IT',
+        Language::create(['code' => 'it',
                         'bgg_index' => '2193',
                         'name' => 'Italiano']);
     }

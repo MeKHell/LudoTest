@@ -79,7 +79,7 @@ if (!function_exists('extract_subarray')) {
 }
 
 if (!function_exists('lt_translate')) {
-    function lt_translate(string $text, string $lang_code = 'EN'): array {
+    function lt_translate(string $text, string $lang_code = 'en'): array {
         // TODO implement translation
         return ['language_code' => $lang_code, 'text' => $text];
     }

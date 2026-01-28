@@ -97,7 +97,7 @@ class GameController extends Controller
 
         // Binds the description to the game
         if ($description) {
-            $tk = TranslationKeyController::ADD($description, "EN", "game_description");
+            $tk = TranslationKeyController::ADD($description, "en", "game_description");
             $db_game->translationKey()->associate($tk);
             $db_game->save();
         } else if ($db_game->parent()->select(['translation_id'])->first()){
@@ -115,8 +115,7 @@ class GameController extends Controller
 
     private function getGameFromDB(string $id)
     {
-        Log::debug("Getting game ". $id . " from database");
-        $game = Game::with(['worked_on', 'translationKey', 'comments', 'parent'])->find($id);
+        $game = Game::with(['worked_on', 'translationKey', 'comments', 'parent', 'answers'])->find($id);
         $versions = $game->versions()->get(['bgge_id', 'name', 'pub_year', 'thumb_url']);
         return ['game' => $game->toResource(), 'versions' => $versions];
     }
@@ -146,7 +145,6 @@ class GameController extends Controller
         foreach ($versions as $version){
             $this->addGame($version, $languages, $game['bgge_id']);
         }
-        Log::debug("Game " . $id . " added to database.");
         return null;
     }
 

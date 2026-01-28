@@ -65,7 +65,7 @@ export function VersionTable({ versionsData }: { versionsData: Game[] }) {
                             <div className="content-center">
                                 {t('game.language')}
                             </div>
-                            <DropdownMenu>
+                            <DropdownMenu modal={false}>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="outline">
                                         <Search />

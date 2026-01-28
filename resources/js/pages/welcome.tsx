@@ -8,10 +8,10 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useLang } from '@/hooks/useLang';
-import { Clock, Search, Spade, Star, TrendingUp, Users } from 'lucide-react';
-import { JSX, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
+import { Clock, Search, Spade, Star, TrendingUp, Users } from 'lucide-react';
+import React, { useState } from 'react';
 
 const featuredGames = [
     {
@@ -60,7 +60,7 @@ const popularGames = [
     { title: 'Splendor', rating: 4.2, trend: '+10%' },
 ];
 
-export default function Welcome() {
+function Welcome() {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const { t } = useLang();
     return (
@@ -338,6 +338,9 @@ export default function Welcome() {
     );
 }
 
-Welcome.layout = (page: JSX.Element) => (
-    <AppLayout children={page} />
-);
+Welcome.layout = (page: React.ReactNode) => {
+    console.log('🔧 Layout invoked for Welcome');
+    return <AppLayout>{page}</AppLayout>;
+};
+
+export default Welcome;

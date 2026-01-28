@@ -14,7 +14,6 @@ class CommentController extends Controller
         $id = $request->input('game_id');
         $comment = $request->input('comment');
         $uid = $request->user()->id;
-        \Log::debug($uid .' '. $comment .' '. $id);
 
 
         $lang = $request->user()->lang;

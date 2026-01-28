@@ -58,6 +58,7 @@ export interface Game {
     min_age?: number;
     min_players?: number;
     max_players?: number;
+    rating?: number;
     box_time?: number;
     min_time?: number;
     max_time?: number;

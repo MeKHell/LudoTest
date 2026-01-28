@@ -24,7 +24,7 @@ export function NavUser() {
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
@@ -44,8 +44,7 @@ export function NavUser() {
                                 : state === 'collapsed'
                                   ? 'left'
                                   : 'bottom'
-                        }
-                    >
+                        }>
                         <UserMenuContent user={auth.user} />
                     </DropdownMenuContent>
                 </DropdownMenu>

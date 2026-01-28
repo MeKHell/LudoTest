@@ -14,8 +14,6 @@ class Answer extends Model
     protected $guarded = ['id', 'created_at', 'updated_at'];
     protected $hidden = ['id'];
 
-    protected $with = ['user', 'question', 'writtenIn'];
-
     public function user(): BelongsTo{
         return $this->belongsTo(User::class)->select('name');
     }
@@ -27,6 +25,4 @@ class Answer extends Model
     public function question(): BelongsTo{
         return $this->belongsTo(Question::class);
     }
-
-
 }

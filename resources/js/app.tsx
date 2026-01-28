@@ -1,24 +1,25 @@
 import '../css/app.css';
 
 import { createInertiaApp } from '@inertiajs/react';
-import { StrictMode } from 'react';
+import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) => {
-        const pages = import.meta.glob('./pages/**/*.tsx', { eager: true });
-        return pages[`./pages/${name}.tsx`] ?? pages[`.Pages/404.tsx`];
+        const pages = import.meta.glob<() => never>('./pages/**/*.tsx');
+        return pages[`./pages/${name}.tsx`]() ?? pages[`./pages/404.tsx`]();
     },
     setup({ el, App, props }) {
         const root = createRoot(el);
 
         root.render(
             <StrictMode>
-                    <App {...props} />
+                <App {...props} />
             </StrictMode>,
         );
     },
@@ -27,9 +28,9 @@ createInertiaApp({
     },
     defaults: {
         form: {
-            recentlySuccessfulDuration: 4000
-        }
-    }
+            recentlySuccessfulDuration: 4000,
+        },
+    },
 });
 
 // This will set light / dark mode on load...

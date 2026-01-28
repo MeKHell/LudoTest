@@ -27,7 +27,8 @@ class GameResource extends JsonResource
                 'version_of',
                 'translation_key',
                 'translation_id',
-                'last_sync_at'];
+                'last_sync_at',
+                'answers'];
 
         foreach ($to_unset as $key) {
             unset($game[$key]);
@@ -45,6 +46,9 @@ class GameResource extends JsonResource
             }
         }
         unset($game['worked_on']);
+        if ($this->answers){
+            $game['rating'] = round($this->answers->avg('value'), 2);
+        }
         $game['artists'] =  key_exists('Artist', $worked_on) ? $worked_on['Artist'] : [];
         $game['publishers'] = key_exists('Publisher', $worked_on) ? $worked_on['Publisher'] : [];
         $game['designers'] = key_exists('Designer', $worked_on) ? $worked_on['Designer'] : [];

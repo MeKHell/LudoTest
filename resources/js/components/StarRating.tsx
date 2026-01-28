@@ -1,16 +1,19 @@
-import { ReactNode } from 'react';
 import StarFill from '@/components/StarFill';
-
+import { ReactNode } from 'react';
 
 export default function StarRating({
-    rank = 3.6,
+    rank,
+    vote = () => {},
 }: {
-    rank?: number;
+    rank: number;
+    vote?: (x: number) => void;
 }): ReactNode {
     return (
-        <div className='flex'>
+        <div className="flex">
             {[...Array(5)].map((_, i) => (
-                <StarFill key={i} fill={Math.max(0, Math.min(rank - i, 1))*110}/>
+                <div key={i} onClick={() => vote(i + 1)}>
+                    <StarFill fill={Math.max(0, Math.min(rank - i, 1)) * 110} />
+                </div>
             ))}
         </div>
     );

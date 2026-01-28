@@ -6,7 +6,7 @@ export default function StarFill({ fill }: { fill: number }) {
 
     return (
         <Star
-            className="h-6 w-6"
+            className="size-6"
             fill={`url(#${fillID})`}
             stroke={`url(#${strokeID})`}
         >

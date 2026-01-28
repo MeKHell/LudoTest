@@ -21,3 +21,4 @@ Route::delete('/comment/{game_id}', [CommentController::class, 'deleteComment'])
 
 // Answers & Questions
 Route::get('/answers/{game_id}', [AnswerController::class, 'get'])->name('api.answer.get');
+Route::post('/answers/{game_id}', [AnswerController::class, 'vote'])->name('api.answer.post');

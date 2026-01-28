@@ -73,9 +73,9 @@ return [
      * | set to any locale for which you plan to have translation strings.
      * |
      */
-    'locale' => 'EN',
-    'available_locales' => ['DE', 'FR', 'EN', 'IT'],
-    'fallback_locale' => 'DE',
+    'locale' => 'en',
+    'available_locales' => ['de', 'fr', 'en', 'it'],
+    'fallback_locale' => 'de',
     'faker_locale' => 'de_CH',
 
     /*

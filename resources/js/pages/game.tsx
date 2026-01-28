@@ -33,7 +33,6 @@ export default function Game({ id }: { id: string }) {
         },
         [t],
     );
-
     const [gameData, setGameData] = useState<Game>();
     const [versionsData, setVersionsData] = useState<Game[]>([]);
 
@@ -115,7 +114,13 @@ export default function Game({ id }: { id: string }) {
                                             variant="outline"
                                             className="px-3 py-1 text-lg"
                                         >
-                                            {languages.join(', ')}
+                                            {languages
+                                                .map((lang) =>
+                                                    lang.toLocaleUpperCase(
+                                                        locale,
+                                                    ),
+                                                )
+                                                .join(', ')}
                                         </Badge>
                                     </div>
 
@@ -127,7 +132,8 @@ export default function Game({ id }: { id: string }) {
                                                     <Star
                                                         key={i}
                                                         className={`h-6 w-6 ${
-                                                            i < Math.floor(3.2)
+                                                            i <
+                                                            Math.floor(gameData.rating ?? 0)
                                                                 ? 'fill-yellow-400 text-yellow-400'
                                                                 : 'text-muted-foreground'
                                                         }`}
@@ -135,7 +141,7 @@ export default function Game({ id }: { id: string }) {
                                                 ))}
                                             </div>
                                             <span className="text-2xl font-bold">
-                                                {3.2}
+                                                { gameData.rating == 0 ? t('game.no_review') : gameData.rating}
                                             </span>
                                         </div>
                                         <div className="text-muted-foreground">
@@ -158,7 +164,7 @@ export default function Game({ id }: { id: string }) {
                                         <div className="rounded-lg bg-card p-4 text-center">
                                             <Clock className="mx-auto mb-2 h-6 w-6 text-primary" />
                                             <div className="font-semibold">
-                                                {gameData.box_time}
+                                                {gameData.box_time || '-'}
                                             </div>
                                             <div className="text-sm text-muted-foreground">
                                                 {t('game.playTime')}
@@ -167,7 +173,7 @@ export default function Game({ id }: { id: string }) {
                                         <div className="rounded-lg bg-card p-4 text-center">
                                             <Calendar className="mx-auto mb-2 h-6 w-6 text-primary" />
                                             <div className="font-semibold">
-                                                {gameData.pub_year}
+                                                {gameData.pub_year || '-'}
                                             </div>
                                             <div className="text-sm text-muted-foreground">
                                                 {t('game.released')}
@@ -260,10 +266,10 @@ export default function Game({ id }: { id: string }) {
                                         <p className="mb-4 leading-relaxed text-muted-foreground">
                                             {(locale &&
                                                 gameData?.descriptions?.[
-                                                    locale?.toUpperCase()
+                                                    locale
                                                 ]) ||
                                                 gameData?.descriptions?.[
-                                                    'EN'
+                                                    'en'
                                                 ] ||
                                                 t('game.missing_translation')}
                                         </p>
@@ -304,7 +310,7 @@ export default function Game({ id }: { id: string }) {
                                     </CardHeader>
                                     <CardContent>
                                         <div className="space-y-3">
-                                            <RatingList gameId={id}/>
+                                            <RatingList gameId={id} />
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -366,8 +372,10 @@ export default function Game({ id }: { id: string }) {
                                                         {t('game.players')}
                                                     </h4>
                                                     <p>
-                                                        {gameData.min_players} -{' '}
-                                                        {gameData.max_players}
+                                                        {gameData.min_players}
+                                                        {gameData.min_players !==
+                                                            gameData.max_players &&
+                                                            ` - ${gameData.max_players}`}
                                                     </p>
                                                 </div>
                                                 <div>
@@ -410,7 +418,7 @@ export default function Game({ id }: { id: string }) {
                     </div>
                 </div>
             ) : (
-                <Loading/>
+                <Loading />
             )}
         </AppLayout>
     );
