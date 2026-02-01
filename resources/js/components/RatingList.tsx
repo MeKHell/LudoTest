@@ -1,7 +1,6 @@
 import Loading from '@/components/loading';
 import StarRating from '@/components/StarRating';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { useLang } from '@/hooks/useLang';
 import Answer from '@/routes/api/answer';
 import { Question } from '@/types';
@@ -81,8 +80,8 @@ export function RatingList({ gameId }: { gameId: string }): ReactNode {
         <Loading />
     ) : (
         <div>
-            <div className="grid grid-cols-4 rounded border p-2">
-                <div className="col-span-2 font-semibold">
+            <div className="flex md:grid-cols-5 rounded border p-2 md:grid justify-around">
+                <div className="col-span-3 font-semibold">
                     {t('game.question')}
                 </div>
                 <div className="col-span-1 font-semibold">
@@ -92,25 +91,26 @@ export function RatingList({ gameId }: { gameId: string }): ReactNode {
                     {t('game.self_vote')}
                 </div>
             </div>
-            {questions.map((question, i) => (
+            {questions.map((question) => (
                 <div
                     key={question.id}
-                    className="grid grid-cols-4 rounded border p-2"
+                    className="flex md:grid-cols-5 rounded border p-2 md:grid"
                 >
-                    <div className="col-span-2">
+                    <div className="grow md:col-span-3">
                         {question.translations[locale]}
                     </div>
-                    <div className="col-span-1">
+                    <div className="md:col-span-1">
                         <StarRating rank={answers['Q' + question.id] ?? 0} />
                     </div>
-                    <div className="col-span-1 flex">
-                        <Frown className="size-7 stroke-red-500 pr-1" />
-                        <StarRating
-                            rank={selfAnswers['Q' + question.id] ?? 0}
-                            vote={castVote(question.id)}
-                        />
-                        <Smile className="size-7 stroke-green-500 pl-1" />
-
+                    <div className="md:col-span-1">
+                        <div className="flex w-fit ml-5">
+                            <Frown className="size-7 stroke-red-500 pr-1" />
+                            <StarRating
+                                rank={selfAnswers['Q' + question.id] ?? 0}
+                                vote={castVote(question.id)}
+                            />
+                            <Smile className="size-7 stroke-green-500 pl-1" />
+                        </div>
                         <Badge
                             variant={
                                 status.has(`S${question.id}`)
@@ -119,15 +119,14 @@ export function RatingList({ gameId }: { gameId: string }): ReactNode {
                                       ? 'destructive'
                                       : 'default'
                             }
-                            className={`${!status.has(`S${question.id}`) && !status.has(`S${question.id}`) && 'invisible'} grid whitespace-nowrap text-center`}
+                            className={`${!status.has(`S${question.id}`) && !status.has(`S${question.id}`) && 'invisible'} grid mx-auto text-center whitespace-nowrap`}
                         >
                             <div
                                 className={`${
                                     status.has(`S${question.id}`)
                                         ? ''
                                         : 'invisible'
-                                } row-start-1 col-start-1 justify-center w-full`}
-                                aria-live="polite"
+                                } col-start-1 row-start-1 w-full justify-center`}
                             >
                                 {t('game.successful_vote')}
                             </div>
@@ -139,15 +138,12 @@ export function RatingList({ gameId }: { gameId: string }): ReactNode {
                                     !status.has(`S${question.id}`)
                                         ? ''
                                         : 'invisible'
-                                } col-start-1 row-start-1 flex items-center justify-center w-full`}
-                                aria-live="polite"
+                                } col-start-1 row-start-1 flex w-full items-center justify-center`}
                             >
                                 {t('game.vote_failure')}
                             </div>
                         </Badge>
-                    </div>
-                    {i !== questions.length - 1 && <Separator />}
-                </div>
+                    </div></div>
             ))}
         </div>
     );

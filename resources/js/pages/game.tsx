@@ -1,4 +1,7 @@
 import GameController from '@/actions/App/Http/Controllers/GameController';
+import CommentManager from '@/components/CommentManager';
+import Loading from '@/components/loading';
+import { RatingList } from '@/components/RatingList';
 import { Badge } from '@/components/ui/badge';
 import {
     Card,
@@ -14,11 +17,8 @@ import AppLayout from '@/layouts/app-layout';
 import { game, home } from '@/routes';
 import { type Game } from '@/types';
 import { usePage } from '@inertiajs/react';
-import { Calendar, Clock, Star, Users } from 'lucide-react';
+import { Calendar, Clock, Images, Star, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import CommentManager from '@/components/CommentManager';
-import Loading from '@/components/loading';
-import { RatingList } from '@/components/RatingList';
 
 export default function Game({ id }: { id: string }) {
     const { url } = usePage();
@@ -133,7 +133,10 @@ export default function Game({ id }: { id: string }) {
                                                         key={i}
                                                         className={`h-6 w-6 ${
                                                             i <
-                                                            Math.floor(gameData.rating ?? 0)
+                                                            Math.floor(
+                                                                gameData.rating ??
+                                                                    0,
+                                                            )
                                                                 ? 'fill-yellow-400 text-yellow-400'
                                                                 : 'text-muted-foreground'
                                                         }`}
@@ -141,7 +144,9 @@ export default function Game({ id }: { id: string }) {
                                                 ))}
                                             </div>
                                             <span className="text-2xl font-bold">
-                                                { gameData.rating == 0 ? t('game.no_review') : gameData.rating}
+                                                {gameData.rating == 0
+                                                    ? t('game.no_review')
+                                                    : gameData.rating}
                                             </span>
                                         </div>
                                         <div className="text-muted-foreground">
@@ -180,7 +185,22 @@ export default function Game({ id }: { id: string }) {
                                             </div>
                                         </div>
                                     </div>
-
+                                    <div className="flex w-fit items-center justify-around rounded-lg bg-card p-4 text-center">
+                                        <Images className="mx-4 size-6 text-primary" />
+                                        <div className="font-semibold text-muted-foreground">
+                                            {t('game.more_pictures')}
+                                        </div>
+                                        <a
+                                            className="mx-4 rounded-2xl border border-primary bg-secondary px-4 py-1 font-semibold text-primary-foreground hover:bg-primary"
+                                            href={
+                                                gameData.parent
+                                                    ? `https://boardgamegeek.com/images/version/${gameData.bgge_id}`
+                                                    : `https://boardgamegeek.com/images/boardgame/${gameData.bgge_id}`
+                                            }
+                                        >
+                                            {t('game.on_bggdotcom')}
+                                        </a>
+                                    </div>
                                     {/* User Rating */}
                                     {/* user && (
                                         <Card className="mb-6">
@@ -218,11 +238,6 @@ export default function Game({ id }: { id: string }) {
                                             </CardContent>
                                         </Card>
                                     ) */}
-
-                                    <p className="leading-relaxed text-muted-foreground">
-                                        {locale &&
-                                            gameData?.descriptions?.[locale]}
-                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -233,9 +248,9 @@ export default function Game({ id }: { id: string }) {
                         data-debug-tabs
                     >
                         <Tabs defaultValue="versions" className="space-y-6">
-                            <TabsList className="grid w-full grid-cols-5">
+                            <TabsList className="flex w-full">
                                 <TabsTrigger value="versions">
-                                    {t('game.versions')}
+                                    {gameData.parent ? t('game.parent') :t('game.versions')}
                                 </TabsTrigger>
                                 <TabsTrigger value="overview">
                                     {t('game.overview')}
@@ -404,12 +419,12 @@ export default function Game({ id }: { id: string }) {
                                                 'rounded bg-white/30 px-2 py-1'
                                             }
                                         >
-                                            {t('game.versions')}
+                                            {gameData.parent ? t('game.parent') : t('game.versions')}
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent>
                                         <VersionTable
-                                            versionsData={versionsData}
+                                            versionsData={gameData.parent ? [gameData.parent] : versionsData}
                                         />
                                     </CardContent>
                                 </Card>
