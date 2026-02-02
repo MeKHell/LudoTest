@@ -129,7 +129,7 @@ export function VersionTable({ versionsData }: { versionsData: Game[] }) {
                                         className="size-32 h-full object-cover"
                                     />
                                 ) : (
-                                    <ImageOff className="size-32" />
+                                    <ImageOff className="size-32 stroke-primary" />
                                 )}
                             </TableCell>
                             <TableCell className="font-semibold">
