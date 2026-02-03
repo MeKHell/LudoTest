@@ -1,7 +1,6 @@
 <?php
 
-return [
-    /*
+return [/*
      * |--------------------------------------------------------------------------
      * | Application Name
      * |--------------------------------------------------------------------------
@@ -11,7 +10,7 @@ return [
      * | other UI elements where an application name needs to be displayed.
      * |
      */
-    'name' => env('APP_NAME', 'LudoTest'),
+        'name' => env('APP_NAME', 'LudoTest'),
 
     /*
      * |--------------------------------------------------------------------------
@@ -23,7 +22,7 @@ return [
      * | services the application utilizes. Set this in your ".env" file.
      * |
      */
-    'env' => env('APP_ENV', 'production'),
+        'env' => env('APP_ENV', 'production'),
 
     /*
      * |--------------------------------------------------------------------------
@@ -35,7 +34,7 @@ return [
      * | application. If disabled, a simple generic error page is shown.
      * |
      */
-    'debug' => (bool) env('APP_DEBUG', false),
+        'debug' => (bool)env('APP_DEBUG', false),
 
     /*
      * |--------------------------------------------------------------------------
@@ -47,9 +46,24 @@ return [
      * | the application so that it's available within Artisan commands.
      * |
      */
-    'url' => env('APP_URL', 'http://localhost'),
-    'bgg_url' => env('BGG_URL', 'https://boardgamegeek.com/xmlapi2'),
-    'bgg_api_key' => env('BGG_API_KEY'),
+        'url' => env('APP_URL', 'http://localhost'),
+        'src_list' => [
+                "bgg" =>
+                        [
+                                "url" => env('BGG_URL', 'https://boardgamegeek.com/xmlapi2'),
+                                'api_key' => env('BGG_API_KEY'),
+                                'normal_link' => 'https://boardgamegeek.com/',
+                                'full_name' => "BoardGameGeek",
+                        ],
+            // Versions from BoardGameGeek might have the same id as some others main games. This is a production robust non-optimal workaround
+                "bggv" =>
+                        [
+                                "url" => env('BGG_URL', 'https://boardgamegeek.com/xmlapi2'),
+                                'api_key' => env('BGG_API_KEY'),
+                                'normal_link' => 'https://boardgamegeek.com/',
+                                'full_name' => "BoardGameGeek",
+                        ]
+        ],
 
     /*
      * |--------------------------------------------------------------------------
@@ -61,7 +75,7 @@ return [
      * | is set to "UTC" by default as it is suitable for most use cases.
      * |
      */
-    'timezone' => 'UTC',
+        'timezone' => 'UTC',
 
     /*
      * |--------------------------------------------------------------------------
@@ -73,10 +87,10 @@ return [
      * | set to any locale for which you plan to have translation strings.
      * |
      */
-    'locale' => 'en',
-    'available_locales' => ['de', 'fr', 'en', 'it'],
-    'fallback_locale' => 'de',
-    'faker_locale' => 'de_CH',
+        'locale' => 'en',
+        'available_locales' => ['de', 'fr', 'en', 'it'],
+        'fallback_locale' => 'de',
+        'faker_locale' => 'de_CH',
 
     /*
      * |--------------------------------------------------------------------------
@@ -88,13 +102,9 @@ return [
      * | are secure. You should do this prior to deploying the application.
      * |
      */
-    'cipher' => 'AES-256-CBC',
-    'key' => env('APP_KEY'),
-    'previous_keys' => [
-        ...array_filter(
-            explode(',', env('APP_PREVIOUS_KEYS', ''))
-        ),
-    ],
+        'cipher' => 'AES-256-CBC',
+        'key' => env('APP_KEY'),
+        'previous_keys' => [...array_filter(explode(',', env('APP_PREVIOUS_KEYS', ''))),],
 
     /*
      * |--------------------------------------------------------------------------
@@ -108,10 +118,7 @@ return [
      * | Supported drivers: "file", "cache"
      * |
      */
-    'maintenance' => [
-        'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
-        'store' => env('APP_MAINTENANCE_STORE', 'database'),
-    ],
+        'maintenance' => ['driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
+                'store' => env('APP_MAINTENANCE_STORE', 'database'),],
 
-    'max_comment_length' => env('APP_MAX_COMMENT_LENGTH', 1024),
-];
+        'max_comment_length' => env('APP_MAX_COMMENT_LENGTH', 1024),];

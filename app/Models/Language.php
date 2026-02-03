@@ -45,6 +45,6 @@ class Language extends Model
                 'lang_id',
                 'game_id',
                 'code',
-                'bgge_id');
+                'id');
     }
 }

@@ -16,8 +16,9 @@ use function App\extract_subarray;
 
 class GameController extends Controller
 {
-    private string $game_formatter = "items.item.{
-            bgge_id: xml_attr.id,
+    private array $game_formatter =["bgg" => "items.item.{
+            src_id: xml_attr.id,
+            src: 'bgg',
             name: ([name][])[?xml_attr.type=='primary']|[0].xml_attr.value,
             thumb_url: thumbnail.value,
             image_url: image.value,
@@ -30,52 +31,61 @@ class GameController extends Controller
             min_time: minplaytime.xml_attr.value,
             max_time: maxplaytime.xml_attr.value,
             artists: ([link][])[?xml_attr.type=='boardgameartist'].{
-                bgge_id: xml_attr.id,
+                src_id: xml_attr.id,
                 name: xml_attr.value },
             publishers: ([link][])[?xml_attr.type=='boardgamepublisher'].{
-                bgge_id:xml_attr.id,
+                src_id:xml_attr.id,
                 name: xml_attr.value }
             designers: ([link][])[?xml_attr.type=='boardgamedesigner'].{
-                bgge_id:xml_attr.id,
+                src_id:xml_attr.id,
                 name: xml_attr.value }
-            }";
-
-    private string $versions_formatter = "items.item.versions |
+            }"];
+    private array $versions_formatter = ["bgg" => "items.item.versions |
             ([item][])[?contains(map(&contains(['French','English','German', 'Italian'], @),
                 ([link][])[?xml_attr.type == 'language'].xml_attr.value),`true`)].{
-            bgge_id: xml_attr.id,
+            src_id: xml_attr.id,
+            src_id: 'bggv',
             thumb_url: thumbnail.value,
             image_url: image.value,
             languages: ([link][])[?xml_attr.type == 'language'].xml_attr.id,
             name: canonicalname.xml_attr.value,
             pub_year: yearpublished.xml_attr.value,
             artists: ([link][])[?xml_attr.type=='boardgameartist'].{
-                bgge_id: xml_attr.id,
+                src_id: xml_attr.id,
                 name: xml_attr.value },
             publishers: ([link][])[?xml_attr.type=='boardgamepublisher'].{
-                bgge_id:xml_attr.id,
+                src_id:xml_attr.id,
                 name: xml_attr.value },
             designers: ([link][])[?xml_attr.type=='boardgamedesigner'].{
-                id:xml_attr.id,
+                src_id:xml_attr.id,
                 name: xml_attr.value }
-            }";
+            }"];
 
-    private function addGame(array $game, Collection $avail_languages, ?string  $version_of) {
+    private array $src_get = [];
+
+
+    public function __construct(){
+        $this->src_get =  [
+            "bgg" => fn($id) =>
+                bgg_query('thing', ['id' => $id, 'versions' => 1])
+        ];
+    }
+    private function addGame(array $game_data, Collection $avail_languages, ?string $version_of) {
         // Extracting data for fast reuse
-        $artists = extract_subarray('artists', $game);
-        $publishers = extract_subarray('publishers', $game);
-        $designers = extract_subarray('designers', $game);
-        $languages = extract_subarray('languages', $game);
-        $description = $game['description'] ?? null;
+        $artists = extract_subarray('artists', $game_data);
+        $publishers = extract_subarray('publishers', $game_data);
+        $designers = extract_subarray('designers', $game_data);
+        $languages = extract_subarray('languages', $game_data);
+        $description = $game_data['description'] ?? null;
 
         // Adding the game parent if needed
-        $game['version_of'] = $version_of;
-        $game['last_sync_at'] = now();
+        $game_data['version_of'] = $version_of;
+        $game_data['last_sync_at'] = now();
 
         //Adding the game
-        $db_game = Game::updateOrCreate(['bgge_id' => $game['bgge_id']], $game);
+        $db_game = Game::updateOrCreate(["src_id" => $game_data['src_id'], "src" => $game_data['src']], $game_data);
 
-        // Addding the roles and bgge_ids to different roles
+        // Addding the roles and ids to different roles
         if($artists){
             $artists = array_map(fn($array): array =>
                 array_merge($array, ['role' => 'Artist', 'updated_at' => now(), 'created_at' => now()]), $artists);
@@ -92,7 +102,7 @@ class GameController extends Controller
             // Binds the roles to the game
         $roles = $designers + $artists + $publishers ;
         if ($roles && count($roles) > 0){
-            $db_game->worked_on()->upsert( $roles, ['bgge_id', 'name', 'role'], ['bgge_id', 'name', 'role']);
+            $db_game->worked_on()->upsert( $roles, ['game_id', 'src_id', 'role'], ['game_id', 'src_id', 'name', 'role']);
         }
 
         // Binds the description to the game
@@ -113,17 +123,27 @@ class GameController extends Controller
         }
     }
 
-    private function getGameFromDB(string $id)
+    private function getGameFromDB(string $id, ?string $src)
     {
-        $game = Game::with(['worked_on', 'translationKey', 'comments', 'parent', 'answers'])->find($id);
-        $versions = $game->versions()->get(['bgge_id', 'name', 'pub_year', 'thumb_url']);
+        if ($src){
+            $game = Game::with(['worked_on', 'translationKey', 'comments', 'parent', 'answers'])
+                    ->where(["games.src_id" => $id, "games.src" => $src])->first();
+        } else {
+            $game = Game::with(['worked_on', 'translationKey', 'comments', 'parent', 'answers'])->find($id);
+        }
+        $versions = $game->versions()->get(['id', 'name', 'pub_year', 'thumb_url']);
         return ['game' => $game->toResource(), 'versions' => $versions];
     }
 
-    private function ensureGameInDB(string $id){
-        $game = Game::whereKey($id)
-                ->first();
-        if ($game?->last_sync_at->isAfter(now()->minus(weeks: 1))) {
+    private function ensureGameInDB(string $id, ?string $src){
+        if ($src){
+            $game = Game::where(["games.src_id" => $id, "games.src" => $src])->first();
+        } else {
+            $game = Game::find($id);
+            $src = $game->src;
+            $src = ($src == "bggv") ? $src : "bgg";
+        }
+        if ($game?->last_sync_at->isAfter(now()->minus(minutes: 1))) {
             Log::debug("Game " . $id . " found in database.");
             return null;
             }
@@ -131,19 +151,21 @@ class GameController extends Controller
 
         // Querying required data
         $languages = Language::get()->keyBy('bgg_index');
-        $bgg_res = bgg_query('thing', ['id' => $game?->parent()->getParentKey() ?? $id, 'versions' => 1]);
-        // Extracting from BGG response
+        Log::Debug($game->parent()->get('src_id')->src_id);
+        // We first need to check the data from the game since we might query it without any $src
+        $query_res = $this->src_get[$src ?? $game->src]($game->parent()->get('src_id')->src_id ?? $game->src_id ?? $id);
+        // Extracting from qurey response
         $jmes = new CompilerRuntime('storage/jmespath');
-        $game = $jmes($this->game_formatter, $bgg_res);
-        if (!$game){
-            return $bgg_res;
+        $game_data = $jmes($this->game_formatter[$game->src ?? $src], $query_res);
+        if (!$game_data){
+            return $query_res;
         }
-        $versions = $jmes($this->versions_formatter, $bgg_res);
+        $versions = $jmes($this->versions_formatter[$game->src ?? $src], $query_res);
 
         // Add the game and its versions
-        $this->addGame($game, $languages, null);
+        $this->addGame($game_data, $languages, null);
         foreach ($versions as $version){
-            $this->addGame($version, $languages, $game['bgge_id']);
+            $this->addGame($version, $languages, $game['id']);
         }
         return null;
     }
@@ -151,7 +173,7 @@ class GameController extends Controller
     public function getTrending(): JsonResponse
     {
         $topGames = Cache::remember('trending_games', 60, Game::withCount('comments')
-            ->orderBy('comments_count', 'desc')  // sort by the count descending. :contentReference[oaicite:1]{index=1}
+            ->orderBy('comments_count', 'desc')
             ->take(10)  // limit to top 10
             ->get());
         return response()->json($topGames);
@@ -181,29 +203,28 @@ class GameController extends Controller
 
         $key = "search_{$query}";
         $result = Cache::get($key);
-        if ($result){
+        /*if ($result){
             Log::debug("Search found in database");
             return $result;
-        }
+        }*/
         Log::debug("Search not found in database");
         $bgg_res = bgg_query('search', ['query' => $query]);
         Cache::put("search_{$query}", $bgg_res);
-
-
+        Log::debug($bgg_res);
         $jmes = new CompilerRuntime('storage/jmespath');
-        $formatter = "items.item[].{bgge_id: xml_attr.id, name:name.xml_attr.value, pub_year: yearpublished.xml_attr.value}";
-        $result = $jmes($formatter, $bgg_res);
+        $formatter = "items.item[].{id: xml_attr.id, name:name.xml_attr.value, pub_year: yearpublished.xml_attr.value}";
+        //$result = $jmes($formatter, $bgg_res);
         Cache::put($key, $result);
-        return $result;
+        return $bgg_res;
     }
 
-    public function get(string $id): JsonResponse
+    public function get(string $id, ?string $src = null): JsonResponse
     {
 
-        if ($res = $this->ensureGameInDB($id)){
+        if ($res = $this->ensureGameInDB($id, $src)){
             return response()->json($res);
         }
 
-        return response()->json($this->getGameFromDB($id));
+        return response()->json($this->getGameFromDB($id, $src));
     }
 }

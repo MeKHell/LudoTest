@@ -16,11 +16,8 @@ class Game extends Model
 {
     /** @use HasFactory<\Database\Factories\GameFactory> */
     //use HasFactory;
-    protected $primaryKey = 'bgge_id';
-    protected $keyType = 'string';
-    public $incrementing = false;
 
-    protected $guarded = ['updated_at', 'created_at'];
+    protected $guarded = ['id', 'updated_at', 'created_at'];
 
     protected $with = ['languages'];
 
@@ -40,7 +37,7 @@ class Game extends Model
                 'game_language',
                 'game_id',
                 'lang_id',
-                'bgge_id',
+                'id',
                 'code');
     }
 
@@ -49,17 +46,17 @@ class Game extends Model
      */
     public function comments(): HasMany
     {
-        return $this->hasMany(Comment::class, 'game_id', 'bgge_id');
+        return $this->hasMany(Comment::class, 'game_id', 'id');
     }
 
     public function answers(): HasMany
     {
-        return $this->hasMany(Answer::class, 'game_id', 'bgge_id');
+        return $this->hasMany(Answer::class, 'game_id', 'id');
     }
 
 
     public function worked_on(): HasMany {
-        return $this->hasMany(GameRole::class, 'bgge_id', 'bgge_id');
+        return $this->hasMany(GameRole::class, 'id', 'id');
     }
 
     public function translationKey(): BelongsTo
@@ -68,11 +65,11 @@ class Game extends Model
     }
     public function versions(): HasMany
     {
-        return $this->hasMany(Game::class, 'version_of', 'bgge_id');
+        return $this->hasMany(Game::class, 'version_of', 'id');
     }
 
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(Game::class, 'version_of', 'bgge_id');
+        return $this->belongsTo(Game::class, 'version_of', 'id');
     }
 }

@@ -18,11 +18,14 @@ erDiagram
         string bgg_id
         string bgg_string
     }
+
     Game {
-        string bgge_id PK "bgge stands for bgg extended: bgg -> number, others -> string "
+        id id PK
         timestamp created_at
         timestamp updated_at
         timestamp last_sync_at
+        string src "Should be one of the keys, in the ''app.src'' config options"
+        string src_id
         string thumb_url "Null"
         string thumb_hash "Null"
         string thumb_blurhash "Null"
@@ -80,9 +83,9 @@ erDiagram
         id id PK
         timestamp created_at
         timestamp updated_at
+        string src_id
         string role "Can be: Publisher, Designer, Artist"
-        string bgge_id
-        string bgge_game_id FK
+        string game_id FK
         string name
     }
     User one or zero -- 0+ Comment  : edits

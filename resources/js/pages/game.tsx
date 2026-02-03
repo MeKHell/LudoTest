@@ -63,7 +63,7 @@ function Game({ id }: { id: string }) {
         if (gameData?.parent) {
             original.splice(1, 0, {
                 title: gameData.parent.name,
-                href: game.get(gameData.parent.bgge_id).url,
+                href: game.get(gameData.parent.id).url,
             });
         }
         setBreadcrumbs(original);
@@ -195,8 +195,8 @@ function Game({ id }: { id: string }) {
                                     className="mx-4 rounded-2xl border border-primary bg-secondary px-4 py-1 font-semibold text-primary-foreground hover:bg-primary"
                                     href={
                                         gameData.parent
-                                            ? `https://boardgamegeek.com/images/version/${gameData.bgge_id}`
-                                            : `https://boardgamegeek.com/images/boardgame/${gameData.bgge_id}`
+                                            ? `https://boardgamegeek.com/images/version/${gameData.id}`
+                                            : `https://boardgamegeek.com/images/boardgame/${gameData.id}`
                                     }
                                 >
                                     {t('game.on_bggdotcom')}
