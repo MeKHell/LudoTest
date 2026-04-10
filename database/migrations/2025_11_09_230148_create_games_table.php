@@ -15,9 +15,6 @@ return new class extends Migration {
         Schema::create('games', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->timestamp("last_sync_at");
-            $table->string('src');
-            $table->string("src_id");
             $table->string('name');
             $table->string('thumb_url')->nullable();
             $table->string('thumb_hash')->nullable();
@@ -34,7 +31,6 @@ return new class extends Migration {
             $table->integer('max_time')->nullable();
             $table->foreignIdFor(Game::class, 'version_of')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignIdFor(TranslationKey::class, 'translation_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->unique("src", "src_id");
         });
     }
 

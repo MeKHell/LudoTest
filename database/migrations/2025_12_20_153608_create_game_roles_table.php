@@ -17,9 +17,10 @@ return new class extends Migration
             $table->timestamps();
             $table->string('role'); // Can be: Publisher, Designer, Artist
             $table->string("name");
-            $table->string('src_id');
+            $table->string('external_id')->nullable();
+            $table->foreignId('source_id')->nullable()->constrained('sources')->nullOnDelete();
             $table->foreignIdFor(Game::class, 'game_id')->constrained('games', 'id')->cascadeOnDelete();
-            $table->unique(["game_id", "src_id", 'role']);
+            $table->unique(["game_id", "source_id", "external_id", 'role']);
         });
     }
 
