@@ -28,6 +28,10 @@ class AuthenticationTest extends TestCase
             'password' => 'password',
         ]);
 
+        if ($response->status() !== 302) {
+            fwrite(STDERR, $response->getContent());
+        }
+
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
     }
