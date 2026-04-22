@@ -11,8 +11,13 @@ Route::get('/trending', [GameController::class, 'getTrending'])->name('api.game.
 
 Route::get('/latest', [GameController::class, 'getLatest'])->name('api.game.latest');
 
-Route::get('/game/{src?}/{id}', [GameController::class, 'get'])->name('api.game.get')
-        ->whereNumber('id')->whereIn('src', array_keys(config("app.src")));
+Route::get('/game/{src}/{id}', function($src, $id) {
+    return app(GameController::class)->get($id, $src);
+})->name('api.game.get')->whereIn('src', array_keys(config("app.src_list")));
+
+Route::get('/game/{id}', [GameController::class, 'get'])
+    ->name('api.game.get.default')
+    ->whereNumber('id');
 
 // Comments
 Route::post('/comment', [CommentController::class, 'storeComment'])->name('api.comment.store');

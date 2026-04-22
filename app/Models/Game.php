@@ -56,7 +56,7 @@ class Game extends Model
 
 
     public function worked_on(): HasMany {
-        return $this->hasMany(GameRole::class, 'id', 'id');
+        return $this->hasMany(GameRole::class, 'game_id', 'id');
     }
 
     public function translationKey(): BelongsTo
