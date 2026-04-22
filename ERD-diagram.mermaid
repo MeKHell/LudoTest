@@ -19,13 +19,18 @@ erDiagram
         string bgg_string
     }
 
+    Source {
+        id id PK
+        string name "e.g. BGG, BoardGameAtlas"
+        string slug "Unique identifier for the adapter"
+        string base_url "Null"
+    }
+
     Game {
         id id PK
         timestamp created_at
         timestamp updated_at
-        timestamp last_sync_at
-        string src "Should be one of the keys, in the ''app.src_list'' config options"
-        string src_id
+        string name "Canonical name"
         string thumb_url "Null"
         string thumb_hash "Null"
         string thumb_blurhash "Null"
@@ -39,10 +44,19 @@ erDiagram
         int box_time "Null"
         int min_time "Null"
         int max_time "Null"
-        string name
         string version_of FK "Null"
-        string desc_tl_id FK
+        id translation_id FK "Description TranslationKey"
     }
+
+    GameSource {
+        id id PK
+        id game_id FK
+        id source_id FK
+        string external_id "The ID in the remote system"
+        json raw_data "Full API response for future re-parsing"
+        timestamp last_sync_at
+    }
+
     TranslationKey {
         id id PK
         string hash "Unique"
@@ -83,7 +97,8 @@ erDiagram
         id id PK
         timestamp created_at
         timestamp updated_at
-        string src_id
+        id source_id FK "Null"
+        string external_id "Null"
         string role "Can be: Publisher, Designer, Artist"
         string game_id FK
         string name
@@ -104,3 +119,6 @@ erDiagram
     Game 1 -- 1 TranslationKey: "description translation"
     Comment 1 -- 1 TranslationKey: "commment translation"
     Question 1 -- 1 TranslationKey: "question translation"
+    Game 1 -- 0+ GameSource: "data provided by"
+    Source 1 -- 0+ GameSource: "identifies"
+    Source 1 -- 0+ GameRole: "provides data for"
