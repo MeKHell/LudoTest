@@ -13,7 +13,12 @@ use SimpleXMLElement;
 class BggProvider implements GameProviderInterface
 {
     private CompilerRuntime $jmes;
-    private string $sourceSlug = 'bgg';
+
+    public function __construct(
+        private string $sourceSlug = 'bgg'
+    ) {
+        $this->jmes = new CompilerRuntime('storage/jmespath');
+    }
 
     private string $gameFormatter = "items.item.{
             src_id: xml_attr.id,
@@ -59,11 +64,6 @@ class BggProvider implements GameProviderInterface
                 src_id:xml_attr.id,
                 name: xml_attr.value }
             }";
-
-    public function __construct()
-    {
-        $this->jmes = new CompilerRuntime('storage/jmespath');
-    }
 
     public function fetchById(string $externalId): ExternalGameData
     {

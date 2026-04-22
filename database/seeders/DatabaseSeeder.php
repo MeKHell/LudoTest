@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             );
         }
         $this->call(LanguageSeeder::class);
+        $this->call(SourceSeeder::class);
         $this->call(QuestionSeeder::class);
     }
 }

@@ -45,8 +45,8 @@ if (!function_exists('bgg_query')) {
         if (!in_array($path, ['search', 'thing'])) {
             return null;
         }
-        $api_key = config('app.bgg_api_key');
-        $url = config('app.bgg_url') . '/' . $path;
+        $api_key = config('app.src_list.bgg.api_key');
+        $url = config('app.src_list.bgg.url') . '/' . $path;
         $req = curl_init();
         $data_url = http_build_query($data);
         curl_setopt_array($req, [

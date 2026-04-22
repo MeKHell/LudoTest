@@ -14,7 +14,7 @@ class BggProviderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->provider = new BggProvider();
+        $this->provider = new BggProvider('bgg');
     }
 
     public function test_fetch_by_id_returns_correct_dto()
