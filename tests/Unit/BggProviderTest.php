@@ -5,15 +5,21 @@ namespace Tests\Unit;
 use App\Providers\GameSources\BggProvider;
 use App\DTOs\ExternalGameData;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class BggProviderTest extends TestCase
 {
+    use RefreshDatabase;
+
     private BggProvider $provider;
 
     protected function setUp(): void
     {
         parent::setUp();
+        
+        $this->seed();
+
         $this->provider = new BggProvider('bgg');
     }
 
