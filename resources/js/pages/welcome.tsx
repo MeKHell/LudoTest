@@ -9,9 +9,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
-import { Clock, Search, Spade, Star, TrendingUp, Users } from 'lucide-react';
+import { router, Head } from '@inertiajs/react';
+import { Clock, Search, Spade, Star, TrendingUp, Users, ArrowRight } from 'lucide-react';
 import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 const featuredGames = [
     {
@@ -63,6 +64,14 @@ const popularGames = [
 function Welcome() {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const { t } = useLang();
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            router.get('/search', { q: searchQuery });
+        }
+    };
+
     return (
         <div className="min-h-screen bg-background">
             <Head title="LudoTest" />
@@ -77,18 +86,23 @@ function Welcome() {
                     </p>
 
                     {/* Search Bar */}
-                    <div className="mx-auto mb-12 max-w-md">
-                        <div className="relative">
-                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
-                            <Input
-                                type="text"
-                                placeholder={t('welcome.placeholder')}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="h-12 pl-10 text-lg"
-                            />
+                    <form onSubmit={handleSearch} className="mx-auto mb-12 max-w-md">
+                        <div className="relative flex gap-2">
+                            <div className="relative flex-1">
+                                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
+                                <Input
+                                    type="text"
+                                    placeholder={t('welcome.placeholder')}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="h-12 pl-10 text-lg"
+                                />
+                            </div>
+                            <Button type="submit" size="lg" className="h-12">
+                                <ArrowRight className="h-5 w-5" />
+                            </Button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </section>
 
@@ -338,9 +352,6 @@ function Welcome() {
     );
 }
 
-Welcome.layout = (page: React.ReactNode) => {
-    console.log('🔧 Layout invoked for Welcome');
-    return <AppLayout>{page}</AppLayout>;
-};
+Welcome.layout = (page: React.ReactNode) => <AppLayout>{page}</AppLayout>;
 
 export default Welcome;

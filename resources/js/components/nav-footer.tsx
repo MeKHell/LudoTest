@@ -43,7 +43,7 @@ export function NavFooter({
                                             className="h-5 w-5"
                                         />
                                     )}
-                                    <span>{item.title}</span>
+                                    <span>{t(item.title)}</span>
                                 </a>
                             </SidebarMenuButton>
                         </SidebarMenuItem>

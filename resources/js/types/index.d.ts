@@ -50,7 +50,7 @@ export interface Language {
 export type Translations = Record<string, string>;
 
 export interface Game {
-    bgge_id: string;
+    id: string;
     name: string;
     thumb_url: string;
     image_url: string;

@@ -18,7 +18,7 @@ import { Game, Language } from '@/types';
 import { router } from '@inertiajs/react';
 import { ImageOff, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { game } from '@/routes';
+import { game_internal } from '@/routes';
 
 export function VersionTable({ versionsData }: { versionsData: Game[] }) {
     const { t } = useLang();
@@ -103,20 +103,20 @@ export function VersionTable({ versionsData }: { versionsData: Game[] }) {
                 <TableBody>
                     {filteredVersions.map((version) => (
                         <TableRow
-                            key={version.bgge_id}
+                            key={version.id}
                             role="link"
                             tabIndex={0}
                             className="cursor-pointer hover:bg-muted/50 even:hover:bg-primary/50"
                             onClick={() =>
                                 router.get(
-                                    game.get({ id: version.bgge_id }).url,
+                                    game_internal.get({ id: version.id }).url,
                                 )
                             }
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
                                     router.get(
-                                        game.get({ id: version.bgge_id }).url,
+                                        game_internal.get({ id: version.id }).url,
                                     );
                                 }
                             }}

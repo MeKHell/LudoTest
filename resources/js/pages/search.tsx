@@ -1,116 +1,133 @@
+import GameController from '@/actions/App/Http/Controllers/GameController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
-import { game } from '@/routes';
-import { type Game } from '@/types';
+import { game_internal } from '@/routes';
 import { router, usePage } from '@inertiajs/react';
-import { ImageOff, Loader2, Search, Star } from 'lucide-react';
+import { Clock, ImageOff, Loader2, Search, Star, Users } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+interface SearchResult {
+    id: string | number;
+    name: string;
+    thumb_url: string | null;
+    pub_year: number | null;
+    is_local: boolean;
+    source: string;
+    external_id: string | null;
+    score: number;
+    min_players: number | null;
+    max_players: number | null;
+    box_time: number | null;
+}
+
 interface SearchPageProps {
-    results: {
-        data: Game[];
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-        next_page_url: string | null;
-    };
     query: string;
 }
 
-function SearchPage({ results: initialResults, query: initialQuery }: SearchPageProps) {
+function SearchPage({ query: initialQuery }: SearchPageProps) {
     const { t } = useLang();
     const { url } = usePage();
     const [query, setQuery] = useState(initialQuery || '');
-    const [searchResults, setSearchResults] = useState(initialResults?.data || []);
-    const [currentPage, setCurrentPage] = useState(initialResults?.current_page || 1);
-    const [hasMore, setHasMore] = useState(initialResults?.next_page_url !== null);
+    const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [isFetching, setIsFetching] = useState(false);
+    const [hasSearched, setHasSearched] = useState(false);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const [page, setPage] = useState(1);
+    const [showLoader, setShowLoader] = useState(false);
     const observerTarget = useRef<HTMLDivElement>(null);
 
-    // Handle search input
-    const handleSearch = useCallback(
-        (e: React.FormEvent) => {
-            e.preventDefault();
-            if (query.trim()) {
-                router.get(
-                    url,
-                    { q: query },
-                    {
-                        preserveState: false,
-                        preserveScroll: false,
-                    }
-                );
-            }
-        },
-        [query, url]
-    );
+    const performSearch = useCallback(async (searchQuery: string, pageNum: number = 1) => {
+        if (!searchQuery.trim()) return;
 
-    // Load more results
-    const loadMore = useCallback(async () => {
-        if (isFetching || !hasMore || !initialResults?.next_page_url) return;
+        if (pageNum === 1) {
+            setIsLoading(true);
+            setHasSearched(true);
+        } else {
+            setIsFetchingMore(true);
+        }
 
-        setIsFetching(true);
+        // Add 0.1s delay to loader visibility
+        const loaderTimer = setTimeout(() => setShowLoader(true), 100);
+
         try {
-            const nextPage = currentPage + 1;
             const response = await fetch(
-                `${url}?q=${encodeURIComponent(initialQuery)}&page=${nextPage}`,
-                {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        Accept: 'application/json',
-                    },
-                }
+                GameController.search({ query: { q: searchQuery, limit: 50, page: pageNum } }).url,
+                { headers: { Accept: 'application/json' } }
             );
 
             const data = await response.json();
-
-            if (data.results?.data) {
-                setSearchResults((prev) => [...prev, ...data.results.data]);
-                setCurrentPage(data.results.current_page);
-                setHasMore(data.results.next_page_url !== null);
+            
+            if (pageNum === 1) {
+                setSearchResults(data);
+            } else {
+                setSearchResults(prev => [...prev, ...data]);
             }
+            
+            setHasMore(data.length === 50);
         } catch (error) {
-            console.error('Error loading more results:', error);
+            console.error('Error fetching search results:', error);
         } finally {
-            setIsFetching(false);
+            clearTimeout(loaderTimer);
+            setShowLoader(false);
+            setIsLoading(false);
+            setIsFetchingMore(false);
         }
-    }, [isFetching, hasMore, currentPage, url, initialQuery, initialResults?.next_page_url]);
+    }, []);
 
-    // Intersection Observer for infinite scroll
+    // Intersection Observer for infinite scroll (3 rows trigger)
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && hasMore && !isFetching) {
-                    loadMore();
+                if (entries[0].isIntersecting && hasMore && !isFetchingMore) {
+                    const nextPage = page + 1;
+                    setPage(nextPage);
+                    performSearch(query, nextPage);
                 }
             },
-            { threshold: 0.1 }
+            { threshold: 0.1, rootMargin: '200px' }
         );
 
         const currentTarget = observerTarget.current;
-        if (currentTarget) {
-            observer.observe(currentTarget);
-        }
+        if (currentTarget) observer.observe(currentTarget);
 
         return () => {
-            if (currentTarget) {
-                observer.unobserve(currentTarget);
-            }
+            if (currentTarget) observer.unobserve(currentTarget);
         };
-    }, [hasMore, isFetching, loadMore]);
+    }, [hasMore, isFetchingMore, page, query, performSearch]);
 
-    // Reset results when props change
+    // Trigger search when query in URL changes
     useEffect(() => {
-        setSearchResults(initialResults?.data || []);
-        setCurrentPage(initialResults?.current_page || 1);
-        setHasMore(initialResults?.next_page_url !== null);
-    }, [initialResults]);
+        const params = new URLSearchParams(window.location.search);
+        const q = params.get('q');
+        if (q) {
+            setQuery(q);
+            setPage(1);
+            performSearch(q, 1);
+        } else {
+            setSearchResults([]);
+            setHasSearched(false);
+        }
+    }, [performSearch, url]);
+
+    // Handle search input
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (query.trim()) {
+            router.get(
+                '/search',
+                { q: query },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                }
+            );
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background">
@@ -131,6 +148,7 @@ function SearchPage({ results: initialResults, query: initialQuery }: SearchPage
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 className="pl-10"
+                                autoFocus
                             />
                         </div>
                         <Button type="submit" disabled={isLoading}>
@@ -143,99 +161,107 @@ function SearchPage({ results: initialResults, query: initialQuery }: SearchPage
                     </form>
 
                     {/* Results Count */}
-                    {initialQuery && (
+                    {hasSearched && !isLoading && (
                         <p className="mt-4 text-sm text-muted-foreground">
-                            {initialResults?.total
-                                ? `${initialResults.total} ${t('search.results_found') || 'results found'} for "${initialQuery}"`
-                                : `${t('search.no_results') || 'No results found'} for "${initialQuery}"`}
+                            {searchResults.length
+                                ? `${searchResults.length} ${t('search.results_found') || 'results found'} for "${query}"`
+                                : `${t('search.no_results') || 'No results found'} for "${query}"`}
                         </p>
                     )}
                 </div>
 
                 {/* Results Grid */}
-                {searchResults.length > 0 ? (
+                {isLoading ? (
+                    <div className="flex justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                ) : searchResults.length > 0 ? (
                     <div className="space-y-4">
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {searchResults.map((gameData) => (
-                                <Card
-                                    key={gameData.id}
-                                    className="overflow-hidden transition-shadow hover:shadow-lg cursor-pointer"
-                                    onClick={() => router.visit(game.get(gameData.id).url)}
-                                >
-                                    <div className="aspect-video w-full overflow-hidden bg-muted">
-                                        {gameData.image_url ? (
+                        {searchResults.map((result) => (
+                            <Card
+                                key={`${result.source}-${result.id}`}
+                                className="group overflow-hidden transition-all hover:shadow-md cursor-pointer border-muted-foreground/20 hover:border-primary/50"
+                                onClick={() => {
+                                    if (result.is_local) {
+                                        router.visit(game_internal.url(result.id));
+                                    } else {
+                                        router.visit(`/game/${result.source}/${result.id}?name=${encodeURIComponent(result.name)}`);
+                                    }
+                                }}
+                            >
+                                <CardContent className="p-4 flex gap-4 items-center relative">
+                                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded bg-muted flex items-center justify-center">
+                                        {result.thumb_url ? (
                                             <img
-                                                src={gameData.image_url}
-                                                alt={gameData.name}
-                                                className="h-full w-full object-cover transition-transform hover:scale-105"
+                                                src={result.thumb_url}
+                                                alt={result.name}
+                                                className="h-full w-full object-cover"
                                             />
                                         ) : (
-                                            <div className="flex h-full w-full items-center justify-center">
-                                                <ImageOff className="h-16 w-16 text-muted-foreground" />
-                                            </div>
+                                            <ImageOff className="h-8 w-8 text-muted-foreground" />
                                         )}
                                     </div>
-                                    <CardContent className="p-4">
-                                        <h3 className="mb-2 line-clamp-1 text-lg font-semibold">
-                                            {gameData.name}
-                                        </h3>
-
-                                        <div className="mb-3 flex items-center gap-2">
-                                            <div className="flex items-center gap-1">
-                                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                                <span className="text-sm font-medium">
-                                                    {gameData.rating?.toFixed(1) || 'N/A'}
-                                                </span>
+                                    
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between gap-2 mb-1">
+                                            <h3 className="text-lg font-semibold truncate group-hover:text-primary transition-colors">
+                                                {result.name}
+                                            </h3>
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                {result.is_local && (
+                                                    <Badge variant="secondary">
+                                                        <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
+                                                        {t('search.in_library') || 'In Library'}
+                                                    </Badge>
+                                                )}
+                                                <div className="h-6 w-6 rounded-full overflow-hidden border border-border bg-white p-1 flex items-center justify-center shadow-sm" title={result.source.toUpperCase()}>
+                                                    {result.source === 'local' ? (
+                                                        <img src="/favicon.svg" alt="LudoTest" className="h-full w-full object-contain" />
+                                                    ) : result.source === 'bgg' || result.source === 'bggv' ? (
+                                                        <img src="https://boardgamegeek.com/favicon.ico" alt="BGG" className="h-full w-full object-contain" />
+                                                    ) : (
+                                                        <span className="text-[10px] font-bold">{result.source[0].toUpperCase()}</span>
+                                                    )}
+                                                </div>
                                             </div>
-                                            {gameData.pub_year && (
-                                                <Badge variant="outline" className="text-xs">
-                                                    {gameData.pub_year}
-                                                </Badge>
-                                            )}
                                         </div>
 
-                                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                                            {gameData.min_players && gameData.max_players && (
-                                                <span>
-                                                    👥 {gameData.min_players}-{gameData.max_players} {t('search.players') || 'players'}
-                                                </span>
-                                            )}
-                                            {gameData.box_time && (
-                                                <span>
-                                                    ⏱️ {gameData.box_time} {t('search.min') || 'min'}
-                                                </span>
+                                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                            {result.pub_year && <span>{result.pub_year}</span>}
+                                            <span className="text-muted-foreground/50">•</span>
+                                            <span>{result.source.toUpperCase()}</span>
+                                            
+                                            {(result.min_players || result.box_time) && (
+                                                <>
+                                                    <span className="text-muted-foreground/50">•</span>
+                                                    {result.min_players && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Users className="w-3 h-3" />
+                                                            {result.min_players}{result.max_players ? `-${result.max_players}` : ''}
+                                                        </span>
+                                                    )}
+                                                    {result.box_time && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Clock className="w-3 h-3" />
+                                                            {result.box_time} min
+                                                        </span>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
-
-                                        {gameData.designers && gameData.designers.length > 0 && (
-                                            <p className="mt-2 line-clamp-1 text-xs text-muted-foreground">
-                                                {t('search.by') || 'By'} {gameData.designers.slice(0, 2).join(', ')}
-                                            </p>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-
-                        {/* Loading indicator for infinite scroll */}
-                        <div ref={observerTarget} className="py-8 text-center">
-                            {isFetching && (
-                                <div className="flex items-center justify-center gap-2">
-                                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                                    <span className="text-muted-foreground">
-                                        {t('search.loading_more') || 'Loading more results...'}
-                                    </span>
-                                </div>
-                            )}
-                            {!hasMore && searchResults.length > 0 && (
-                                <p className="text-muted-foreground">
-                                    {t('search.no_more_results') || 'No more results to load'}
-                                </p>
-                            )}
-                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                        <div ref={observerTarget} className="h-20" />
+                        {showLoader && (
+                            <div className="flex justify-center py-4">
+                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                            </div>
+                        )}
                     </div>
                 ) : (
-                    initialQuery && (
+                    hasSearched && !isLoading && (
                         <div className="flex flex-col items-center justify-center py-16">
                             <Search className="mb-4 h-16 w-16 text-muted-foreground" />
                             <h2 className="mb-2 text-xl font-semibold">
@@ -257,3 +283,4 @@ function SearchPage({ results: initialResults, query: initialQuery }: SearchPage
 SearchPage.layout = (page: React.ReactNode) => <AppLayout>{page}</AppLayout>;
 
 export default SearchPage;
+

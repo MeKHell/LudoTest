@@ -15,7 +15,7 @@ import { VersionTable } from '@/components/version-table';
 import { useBreadcrumbContext } from '@/hooks/useBreadcrumbs';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
-import { game, home } from '@/routes';
+import { game_internal, home } from '@/routes';
 import { type Game } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { Calendar, Clock, ImageOff, Images, Star, Users } from 'lucide-react';
@@ -60,12 +60,7 @@ function Game({ id }: { id: string }) {
             { title: t('game.game'), href: home.url() },
             { title: gameData?.name ?? t('game.loading'), href: url },
         ];
-        if (gameData?.parent) {
-            original.splice(1, 0, {
-                title: gameData.parent.name,
-                href: game.get(gameData.parent.id).url,
-            });
-        }
+        // Remove automatic parent insertion to prevent version views from defaulting to parent data
         setBreadcrumbs(original);
     }, [gameData, setBreadcrumbs, t, url]);
 
@@ -186,23 +181,37 @@ function Game({ id }: { id: string }) {
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex w-fit items-center justify-around rounded-lg bg-card p-4 text-center">
+                            <div className="flex w-fit items-center justify-around rounded-lg bg-card p-4 text-center gap-4">
                                 <Images className="mx-4 size-6 text-primary" />
                                 <div className="font-semibold text-muted-foreground">
                                     {t('game.more_pictures')}
                                 </div>
-                                <a
-                                    className="mx-4 rounded-2xl border border-primary bg-secondary px-4 py-1 font-semibold text-primary-foreground hover:bg-primary"
-                                    href={
-                                        gameData.parent
-                                            ? `https://boardgamegeek.com/images/version/${gameData.id}`
-                                            : `https://boardgamegeek.com/images/boardgame/${gameData.id}`
-                                    }
-                                >
-                                    {t('game.on_bggdotcom')}
-                                </a>
-                            </div>
-                            {/* User Rating */}
+                                {gameData.gameSources?.map((gs) => {
+                                    const isVersion = !!gameData.parent;
+                                    const referralLinks: Record<string, string> = {
+                                        'bgg': isVersion
+                                            ? `https://boardgamegeek.com/images/version/${gs.external_id}`
+                                            : `https://boardgamegeek.com/images/boardgame/${gs.external_id}`,
+                                        // Add other sources here as needed:
+                                        // 'spielkiste': `https://spielkiste.de/game/${gs.external_id}`,
+                                    };
+
+                                    const link = referralLinks[gs.source_slug];
+                                    if (!link) return null;
+
+                                    return (
+                                        <a
+                                            key={gs.source_slug}
+                                            className="mx-2 rounded-2xl border border-primary bg-secondary px-4 py-1 font-semibold text-primary-foreground hover:bg-primary"
+                                            href={link}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            {t(`game.on_${gs.source_slug}dotcom`) || `On ${gs.source_slug}`}
+                                        </a>
+                                    );
+                                })}
+                            </div>                            {/* User Rating */}
                             {/* user && (
                                         <Card className="mb-6">
                                             <CardHeader>

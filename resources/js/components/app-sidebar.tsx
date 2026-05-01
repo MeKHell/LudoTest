@@ -13,31 +13,39 @@ import {
 import { dashboard, home } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Link as LinkIcon, Folder, LayoutGrid } from 'lucide-react';
+import { Link as LinkIcon, Folder, LayoutGrid, Search } from 'lucide-react';
 import AppLogo from './app-logo';
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'app.ludoCH',
-        href: 'https://ludo.ch',
-        icon: LinkIcon,
-    },
-    {
-        title: 'app.project',
-        href: 'https://github.com/MeKHell/LudoTest',
-        icon: Folder,
-    },
-];
+import { useLang } from '@/hooks/useLang';
 
 export function AppSidebar() {
+    const { t } = useLang();
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'app.dashboard',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+        {
+            title: 'app.search',
+            href: '/search',
+            icon: Search,
+        },
+    ];
+
+    const footerNavItems: NavItem[] = [
+        {
+            title: 'app.ludoCH',
+            href: 'https://ludo.ch',
+            icon: LinkIcon,
+        },
+        {
+            title: 'app.project',
+            href: 'https://github.com/MeKHell/LudoTest',
+            icon: Folder,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
