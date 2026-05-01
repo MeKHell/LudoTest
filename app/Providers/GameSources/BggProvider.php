@@ -45,8 +45,20 @@ class BggProvider implements GameProviderInterface
             languages: ([link][])[?xml_attr.type == 'language'].xml_attr.id
             }";
 
-    private string $versionsFormatter = "items.item.versions |
-            ([item][])[?contains(map(&contains(['French','English','German', 'Italian'], @),
+    private function getVersionsFormatter(): string
+    {
+        $source = \App\Models\Source::where('slug', $this->sourceSlug)->first();
+        if (!$source) {
+            return "items.item.versions | []";
+        }
+
+        $langs = \App\Models\LanguageMapping::where('source_id', $source->id)
+            ->pluck('external_name')
+            ->toArray();
+        $langList = "'" . implode("','", $langs) . "'";
+        
+        return "items.item.versions |
+            ([item][])[?contains(map(&contains([$langList], @),
                 ([link][])[?xml_attr.type == 'language'].xml_attr.value),`true`)].{
             src_id: xml_attr.id,
             thumb_url: thumbnail.value,
@@ -64,13 +76,14 @@ class BggProvider implements GameProviderInterface
                 src_id:xml_attr.id,
                 name: xml_attr.value }
             }";
+    }
 
     public function fetchById(string $externalId): ExternalGameData
     {
         $rawData = $this->query('thing', ['id' => $externalId, 'versions' => 1]);
         
         $gameData = ($this->jmes)($this->gameFormatter, $rawData);
-        $versionsData = ($this->jmes)($this->versionsFormatter, $rawData) ?: [];
+        $versionsData = ($this->jmes)($this->getVersionsFormatter(), $rawData) ?: [];
 
         return $this->mapToDto($gameData, $rawData, $versionsData);
     }
