@@ -22,7 +22,12 @@ class Language extends Model
 
     public $timestamps = false;
 
-    public $hidden = ['bgg_index', 'pivot'];
+    public $hidden = ['pivot'];
+
+    public function mappings(): HasMany
+    {
+        return $this->hasMany(LanguageMapping::class, 'language_code', 'code');
+    }
 
     /**
      * @return hasMany<Language,Comment>
