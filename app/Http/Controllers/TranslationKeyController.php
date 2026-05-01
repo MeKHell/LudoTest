@@ -14,6 +14,11 @@ class TranslationKeyController extends Controller
         $hash = hash('sha512', $data);
         $tk = TranslationKey::firstOrCreate(["hash" => $hash], ["context" => $context]);
 
+        $translations = array_map(function($t) use ($tk) {
+            $t['translation_id'] = $tk->id;
+            return $t;
+        }, $translations);
+
         $tk->fullTranslations()->upsert($translations, ["language_code", "translation_id"]);
         return $tk;
     }

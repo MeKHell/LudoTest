@@ -45,16 +45,19 @@ class GameController extends Controller
     public function search(): JsonResponse
     {
         $query = request()->input('q');
+        $src = request()->input('src');
+        $limit = request()->input('limit', 50);
+
         if (!$query) {
             return response()->json([]);
         }
 
-        $key = "search_{$query}";
-        $results = Cache::remember($key, now()->addDay(), function() use ($query) {
-            return $this->gameService->search($query);
+        $key = "search_{$query}_{$src}_{$limit}";
+        $results = Cache::remember($key, now()->addDay(), function() use ($query, $src, $limit) {
+            return $this->gameService->search($query, $src, $limit);
         });
 
-        return response()->json($results);
+        return response()->json(\App\Http\Resources\SearchResultResource::collection($results));
     }
 
     public function get(string $id, ?string $src = null)

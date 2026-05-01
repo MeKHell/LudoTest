@@ -80,8 +80,12 @@ if (!function_exists('extract_subarray')) {
 
 if (!function_exists('lt_translate')) {
     function lt_translate(string $text, string $lang_code = 'en'): array {
-        // TODO implement translation
-        return ['language_code' => $lang_code, 'text' => $text];
+        // In a real scenario, this would call a translation API (e.g. DeepL, Google Translate)
+        // For now, we return the text for the source language.
+        // We could also return placeholders for other supported languages.
+        return [
+            ['language_code' => $lang_code, 'text' => $text]
+        ];
     }
 }
 

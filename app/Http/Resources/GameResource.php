@@ -52,6 +52,12 @@ class GameResource extends JsonResource
         $game['artists'] =  key_exists('Artist', $worked_on) ? $worked_on['Artist'] : [];
         $game['publishers'] = key_exists('Publisher', $worked_on) ? $worked_on['Publisher'] : [];
         $game['designers'] = key_exists('Designer', $worked_on) ? $worked_on['Designer'] : [];
+        $game['gameSources'] = $this->gameSources->map(function ($gs) {
+            return [
+                'source_slug' => $gs->source->slug,
+                'external_id' => $gs->external_id,
+            ];
+        });
 
         return $game;
     }

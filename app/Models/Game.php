@@ -72,4 +72,9 @@ class Game extends Model
     {
         return $this->belongsTo(Game::class, 'version_of', 'id');
     }
+
+    public function gameSources(): HasMany
+    {
+        return $this->hasMany(GameSource::class);
+    }
 }

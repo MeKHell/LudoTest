@@ -12,9 +12,7 @@ return new class extends Migration {
     {
         Schema::create('languages', function (Blueprint $table) {
             $table->tinyText('code')->primary();
-            $table->integer('bgg_index');
             $table->string('name');
-            $table->primary('code');
         });
     }
 
