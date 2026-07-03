@@ -38,9 +38,34 @@ class CommentController extends Controller
         return back();
     }
 
-    public function deleteComment(Request $request, string $commentId) {}
+    public function deleteComment(Request $request, Comment $comment)
+    {
+        $this->authorize('delete', $comment);
 
-    public function updateComment(Request $request, string $commentId) {}
+        $comment->delete();
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function updateComment(Request $request, Comment $comment)
+    {
+        $this->authorize('update', $comment);
+
+        $validated = $request->validate([
+            'comment' => ['required', 'string', 'max:'.config('app.max_comment_length')],
+        ]);
+
+        $lang = $request->user()->lang ?? $comment->lang;
+        $cleanComment = trim(rm_blank_lines(strip_tags($validated['comment'])));
+
+        $tk = TranslationKeyController::ADD($cleanComment, $lang, 'game_comment');
+        $comment->update([
+            'translation_id' => $tk->id,
+            'editor' => $request->user()->id,
+        ]);
+
+        return response()->json(CommentResource::make($comment->fresh())->resolve());
+    }
 
     public function getComments(Request $request, string $gameId) {
         $game = Game::find($gameId);

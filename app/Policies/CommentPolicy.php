@@ -37,7 +37,7 @@ class CommentPolicy
      */
     public function update(User $user, Comment $comment): bool
     {
-        return $user->id === $comment->writer()->first()->id;
+        return $user->id === $comment->writer;
     }
 
     /**
@@ -45,7 +45,7 @@ class CommentPolicy
      */
     public function delete(User $user, Comment $comment): bool
     {
-        return $user->id === $comment->writer()->first()->id;
+        return $user->id === $comment->writer;
     }
 
     /**

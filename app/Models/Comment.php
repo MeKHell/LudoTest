@@ -17,7 +17,13 @@ class Comment extends Model
     /** @use HasFactory<\Database\Factories\CommentFactory> */
     use HasFactory;
 
-    protected $guarded = ['created_at', 'updated_at'];
+    protected $fillable = [
+        'translation_id',
+        'lang',
+        'game_id',
+        'writer',
+        'editor',
+    ];
 
     protected $with = ['translations','writtenIn', 'writer'];
 
