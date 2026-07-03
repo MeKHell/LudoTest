@@ -3,9 +3,10 @@
 use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\LibraryController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/search', [GameController::class, 'search'])->name('api.game.search');
+Route::middleware('throttle:search')->get('/search', [GameController::class, 'search'])->name('api.game.search');
 
 Route::get('/trending', [GameController::class, 'getTrending'])->name('api.game.trending');
 
@@ -22,8 +23,13 @@ Route::get('/game/{id}', [GameController::class, 'get'])
 // Comments
 Route::post('/comment', [CommentController::class, 'storeComment'])->name('api.comment.store');
 Route::get('/comments/{game_id}', [CommentController::class, 'getComments'])->name('api.comment.get');
-Route::put('/comment/{game_id}', [CommentController::class, 'updateComment'])->name('api.comment.post');
-Route::delete('/comment/{game_id}', [CommentController::class, 'deleteComment'])->name('api.comment.delete');
+Route::put('/comment/{comment}', [CommentController::class, 'updateComment'])->name('api.comment.update');
+Route::delete('/comment/{comment}', [CommentController::class, 'deleteComment'])->name('api.comment.delete');
+
+// Library
+Route::get('/library', [LibraryController::class, 'index'])->name('api.library.index');
+Route::post('/library', [LibraryController::class, 'store'])->name('api.library.store');
+Route::delete('/library/{libraryEntry}', [LibraryController::class, 'destroy'])->name('api.library.destroy');
 
 // Answers & Questions
 Route::get('/answers/{game_id}', [AnswerController::class, 'get'])->name('api.answer.get');
