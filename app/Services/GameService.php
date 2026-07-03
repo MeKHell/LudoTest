@@ -28,7 +28,7 @@ class GameService
         };
     }
 
-    public function search(string $query, ?string $sourceSlug = null, int $limit = 50): Collection
+    public function search(string $query, ?string $sourceSlug = null): Collection
     {
         $sourceSlug = $sourceSlug ?: config('app.default_src', 'bgg');
         $source = Source::where('slug', $sourceSlug)->firstOrFail();
@@ -49,7 +49,6 @@ class GameService
                     });
             })
             ->with(['gameSources'])
-            ->limit($limit * 2) // Get enough local results to merge
             ->get();
 
         // 2. External Search
@@ -106,7 +105,7 @@ class GameService
         return $results->sortByDesc(fn($item) => [
             $item['score'],
             $item['game'] ? $item['game']->pub_year : ($item['external'] ? $item['external']->pubYear : 0)
-        ])->take($limit)->values();
+        ])->values();
     }
 
     private function calculateRelevance(string $name, string $query, ?Game $localGame): int

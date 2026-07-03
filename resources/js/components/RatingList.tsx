@@ -119,7 +119,7 @@ export function RatingList({ gameId }: { gameId: string }): ReactNode {
                                       ? 'destructive'
                                       : 'default'
                             }
-                            className={`${!status.has(`S${question.id}`) && !status.has(`S${question.id}`) && 'invisible'} grid mx-auto text-center whitespace-nowrap`}
+                            className={`${!status.has(`S${question.id}`) && !status.has(`E${question.id}`) && 'invisible'} grid mx-auto text-center whitespace-nowrap`}
                         >
                             <div
                                 className={`${

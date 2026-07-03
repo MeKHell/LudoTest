@@ -17,8 +17,8 @@ class QuestionResource extends JsonResource
         return [
                 'id' => $this->id,
                 'translations' => new TranslationKeyResource($this->translations),
-                'max_val' => $this->min_val,
-                'min_val' => $this->max_val,
+                'max_val' => $this->max_val,
+                'min_val' => $this->min_val,
                 'original_lang' => $this->writtenIn
         ];
     }

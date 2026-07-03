@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\AnswerCollection;
+use App\Http\Resources\QuestionResource;
 use App\Models\Answer;
 use App\Models\Game;
 use App\Models\Question;
@@ -16,7 +17,7 @@ class AnswerController extends Controller
     public function get(string $game_id)
     {
         $answers = Game::find($game_id)?->answers()->select('question_id', DB::raw('avg(value) as value_avg'))->groupBy('question_id')->get();
-        $questions = Question::where('is_enabled', true)->get()->toResourceCollection();
+        $questions = QuestionResource::collection(Question::where('is_enabled', true)->get())->resolve();
         $mapped_answers = [];
         foreach ($answers as $answer) {
             $mapped_answers['Q'.$answer->question_id] = $answer->value_avg;
@@ -32,7 +33,7 @@ class AnswerController extends Controller
         $value = $request->input('value');
         $question_id = $request->input('question_id');
 
-        $question = Question::find($question_id)->first();
+        $question = Question::find($question_id);
 
         if (!$question || !$question->is_enabled) {
             return back()->withErrors(['ok' => false, 'message' => 'game.question_not_found']);

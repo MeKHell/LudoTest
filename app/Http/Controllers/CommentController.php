@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CommentResource;
 use App\Models\Comment;
 use App\Models\Game;
 use Illuminate\Http\Request;
@@ -47,6 +48,6 @@ class CommentController extends Controller
             return response()->json([]);
         }
 
-        return response()->json($comments->toResourceCollection());
+        return response()->json(CommentResource::collection($comments)->resolve());
     }
 }

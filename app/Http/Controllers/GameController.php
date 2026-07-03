@@ -46,16 +46,19 @@ class GameController extends Controller
     {
         $query = request()->input('q');
         $src = request()->input('src');
-        $limit = request()->input('limit', 50);
+        $limit = max(1, (int) request()->input('limit', 50));
+        $page = max(1, (int) request()->input('page', 1));
 
         if (!$query) {
             return response()->json([]);
         }
 
-        $key = "search_{$query}_{$src}_{$limit}";
-        $results = Cache::remember($key, now()->addDay(), function() use ($query, $src, $limit) {
-            return $this->gameService->search($query, $src, $limit);
+        $key = "search_{$query}_{$src}";
+        $allResults = Cache::remember($key, now()->addDay(), function () use ($query, $src) {
+            return $this->gameService->search($query, $src);
         });
+
+        $results = $allResults->slice(($page - 1) * $limit, $limit)->values();
 
         return response()->json(\App\Http\Resources\SearchResultResource::collection($results));
     }
