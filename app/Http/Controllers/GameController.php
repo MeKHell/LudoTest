@@ -6,6 +6,7 @@ use App\Models\Comment;
 use App\Models\Game;
 use App\Services\GameService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class GameController extends Controller
@@ -42,20 +43,39 @@ class GameController extends Controller
         return response()->json($games);
     }
 
-    public function search(): JsonResponse
+    public function search(Request $request): JsonResponse
     {
-        $query = request()->input('q');
-        $src = request()->input('src');
-        $limit = max(1, (int) request()->input('limit', 50));
-        $page = max(1, (int) request()->input('page', 1));
+        $validated = $request->validate([
+            'q' => ['required', 'string', 'max:200'],
+            'src' => ['nullable', 'string'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'min_players' => ['nullable', 'integer', 'min:1'],
+            'max_players' => ['nullable', 'integer', 'min:1', 'gte:min_players'],
+            'min_time' => ['nullable', 'integer', 'min:1'],
+            'max_time' => ['nullable', 'integer', 'min:1', 'gte:min_time'],
+            'min_age' => ['nullable', 'integer', 'min:1'],
+            'filter_mode' => ['nullable', 'string', 'in:strict,loose'],
+        ]);
 
-        if (!$query) {
-            return response()->json([]);
-        }
+        $query = $validated['q'];
+        $src = $validated['src'] ?? null;
+        $limit = min(50, max(1, (int) ($validated['limit'] ?? 50)));
+        $page = max(1, (int) ($validated['page'] ?? 1));
 
-        $key = "search_{$query}_{$src}";
-        $allResults = Cache::remember($key, now()->addDay(), function () use ($query, $src) {
-            return $this->gameService->search($query, $src);
+        $filters = array_filter([
+            'min_players' => $validated['min_players'] ?? null,
+            'max_players' => $validated['max_players'] ?? null,
+            'min_time' => $validated['min_time'] ?? null,
+            'max_time' => $validated['max_time'] ?? null,
+            'min_age' => $validated['min_age'] ?? null,
+        ], fn ($value) => $value !== null);
+        $filterMode = $validated['filter_mode'] ?? 'strict';
+
+        $filterKey = $filters === [] ? '' : '_'.md5(json_encode([$filters, $filterMode]));
+        $key = "search_game_{$query}_{$src}{$filterKey}";
+        $allResults = Cache::remember($key, now()->addDay(), function () use ($query, $src, $filters, $filterMode) {
+            return $this->gameService->search($query, $src, $filters, $filterMode);
         });
 
         $results = $allResults->slice(($page - 1) * $limit, $limit)->values();

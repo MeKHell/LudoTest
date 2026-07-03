@@ -62,6 +62,13 @@ return [/*
                                 'api_key' => env('BGG_API_KEY'),
                                 'normal_link' => 'https://boardgamegeek.com/',
                                 'full_name' => "BoardGameGeek",
+                        ],
+                "stub" =>
+                        [
+                                "url" => null,
+                                'api_key' => null,
+                                'normal_link' => '#',
+                                'full_name' => "Stub Provider",
                         ]
         ],
         'default_src' => 'bgg',
