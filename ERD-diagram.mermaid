@@ -1,36 +1,89 @@
 ---
-title: Database content
+title: LudoTest database schema (matches database/migrations)
 ---
 erDiagram
-    User{
-        id id PK
-        timestamp created_at
-        timestamp updated_at
+    users {
+        bigint id PK
         string name
         string email UK
         timestamp email_verified_at "Null"
         string password
-        id lang FK "Null"
+        string lang FK "Null -> languages.code"
         string remember_token "Null"
-        }
-    Lang {
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
+        text two_factor_secret "Null"
+        text two_factor_recovery_codes "Null"
+        timestamp two_factor_confirmed_at "Null"
+    }
+
+    password_reset_tokens {
+        string email PK
+        string token
+        timestamp created_at "Null"
+    }
+
+    sessions {
+        string id PK
+        bigint user_id FK "Null -> users.id"
+        string ip_address "Null"
+        text user_agent "Null"
+        text payload
+        int last_activity
+    }
+
+    languages {
         string code PK
-        string bgg_id
-        string bgg_string
+        string name
     }
 
-    Source {
-        id id PK
-        string name "e.g. BGG, BoardGameAtlas"
-        string slug "Unique identifier for the adapter"
+    roles {
+        bigint id PK
+        string name
+        string slug UK
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
+    }
+
+    role_user {
+        bigint id PK
+        bigint user_id FK
+        bigint role_id FK
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
+    }
+
+    sources {
+        bigint id PK
+        string name
+        string slug UK
         string base_url "Null"
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
     }
 
-    Game {
-        id id PK
-        timestamp created_at
-        timestamp updated_at
-        string name "Canonical name"
+    translation_keys {
+        bigint id PK
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
+        string hash UK
+        string context "Null"
+    }
+
+    translations {
+        bigint id PK
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
+        bigint translation_id FK
+        string language_code FK
+        text text
+    }
+
+    games {
+        bigint id PK
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
+        string name
         string thumb_url "Null"
         string thumb_hash "Null"
         string thumb_blurhash "Null"
@@ -38,87 +91,135 @@ erDiagram
         string image_hash "Null"
         string image_blurhash "Null"
         int pub_year "Null"
+        int min_age "Null"
         int min_players "Null"
         int max_players "Null"
-        int min_age "Null"
         int box_time "Null"
         int min_time "Null"
         int max_time "Null"
-        string version_of FK "Null"
-        id translation_id FK "Description TranslationKey"
+        bigint version_of FK "Null -> games.id"
+        bigint translation_id FK "Null -> translation_keys.id"
     }
 
-    GameSource {
-        id id PK
-        id game_id FK
-        id source_id FK
-        string external_id "The ID in the remote system"
-        json raw_data "Full API response for future re-parsing"
+    game_language {
+        bigint id PK
+        string lang_id FK "-> languages.code"
+        bigint game_id FK
+    }
+
+    game_sources {
+        bigint id PK
+        bigint game_id FK
+        bigint source_id FK
+        string external_id
+        json raw_data "Null"
         timestamp last_sync_at
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
     }
 
-    TranslationKey {
-        id id PK
-        string hash "Unique"
-        string context "Null"
+    language_mappings {
+        bigint id PK
+        string language_code FK
+        bigint source_id FK
+        string external_id
+        string external_name
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
     }
-    Translation {
-        id id PK
-        id translation_id FK
-        string lang FK
-        text text
-    }
-    Question {
-        id id PK
-        string question_id
-        longText question
-        id translation_id FK
-        int maxVal "Null"
-        int minVal "Null"
-    }
-    Answer {
-        id id PK
-        id writer_id FK
-        string question_id FK
-        string game_id FK
-        int answer
-    }
-    Comment {
-        id id PK
-        timestamp created_at
-        timestamp updated_at
-        id translation_id FK
-        string lang FK
-        string game_id FK
-        id writer_id FK
-        id editor_id FK "Null"
-    }
-    GameRole{
-        id id PK
-        timestamp created_at
-        timestamp updated_at
-        id source_id FK "Null"
-        string external_id "Null"
-        string role "Can be: Publisher, Designer, Artist"
-        string game_id FK
+
+    game_roles {
+        bigint id PK
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
+        string role
         string name
+        string external_id "Null"
+        bigint source_id FK "Null -> sources.id"
+        bigint game_id FK
     }
-    User one or zero -- 0+ Comment  : edits
-    User 1 -- 0+ Comment : writes
-    Comment 1 -- 0+ Game : on
-    Game 1 -- one or zero Game : "version of"
-    Game 1+ -- 0+ Lang : "is available in"
-    Game 0+ -- 1 GameRole: "worked on"
-    Comment 1 -- 1+ Lang: "is in"
-    User 1 -- 1+ Lang: speaks
-    Answer 1 -- 0+ Game: "evaluated on"
-    Answer 1 -- 0+ Question: "answer of"
-    User 1+ -- 1+ Answer: "written by"
-    Translation 1 -- 1+ Lang: "translated to"
-    TranslationKey 1 -- 1+ Translation: "Translated by"
-    Game 1 -- 1 TranslationKey: "description translation"
-    Comment 1 -- 1 TranslationKey: "commment translation"
-    Question 1 -- 1 TranslationKey: "question translation"
-    Game 1 -- 0+ GameSource: "data provided by"
-    Source 1 -- 0+ GameSource: "identifies"
-    Source 1 -- 0+ GameRole: "provides data for"
+
+    library_entries {
+        bigint id PK
+        bigint user_id FK
+        bigint game_id FK
+        enum list_type "owned | wishlist"
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
+    }
+
+    questions {
+        bigint id PK
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
+        string lang FK "Null -> languages.code"
+        bigint translation_id FK
+        int max_val "Null"
+        int min_val "Null"
+        boolean is_enabled "default true"
+    }
+
+    answers {
+        bigint id PK
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
+        bigint user_id FK
+        bigint game_id FK
+        bigint question_id FK
+        int value
+    }
+
+    comments {
+        bigint id PK
+        timestamp created_at "Null"
+        timestamp updated_at "Null"
+        bigint translation_id FK
+        string lang FK
+        bigint game_id FK
+        bigint writer FK "-> users.id"
+        bigint editor "Null"
+    }
+
+    users ||--o| languages : "speaks (lang)"
+    users ||--o{ role_user : has
+    roles ||--o{ role_user : assigned_to
+    users ||--o{ sessions : has
+    users ||--o{ library_entries : owns
+    users ||--o{ answers : submits
+    users ||--o{ comments : writes
+
+    games ||--o{ games : "version_of"
+    games ||--o| translation_keys : "description"
+    games ||--o{ game_language : available_in
+    languages ||--o{ game_language : listed_on
+    games ||--o{ game_sources : sourced_from
+    sources ||--o{ game_sources : identifies
+    games ||--o{ game_roles : worked_on
+    sources ||--o{ game_roles : provides
+    sources ||--o{ language_mappings : maps
+    languages ||--o{ language_mappings : mapped_by
+    games ||--o{ library_entries : in
+    games ||--o{ answers : evaluated_on
+    games ||--o{ comments : on
+
+    translation_keys ||--o{ translations : has
+    languages ||--o{ translations : translated_to
+    translation_keys ||--o{ questions : question_text
+    translation_keys ||--o{ comments : comment_text
+
+    questions ||--o| languages : written_in
+    questions ||--o{ answers : answered_by
+
+    comments }o--|| languages : written_in
+
+    password_reset_tokens |o--|| users : resets_password_for
+
+%% Composite unique constraints (from migrations)
+%% comments: unique(writer, game_id)
+%% game_language: unique(lang_id, game_id)
+%% game_roles: unique(game_id, source_id, external_id, role)
+%% answers: unique(user_id, game_id, question_id)
+%% translations: unique(translation_id, language_code)
+%% game_sources: unique(source_id, external_id)
+%% language_mappings: unique(source_id, external_id); unique(source_id, language_code)
+%% library_entries: unique(user_id, game_id, list_type)
