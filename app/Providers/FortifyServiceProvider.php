@@ -25,7 +25,9 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->instance(LoginResponse::class, new class implements LoginResponse {
             public function toResponse($request)
             {
-                $request->session()->put('locale', Auth::user()->lang);
+                if ($request->user() && $request->hasSession()) {
+                    $request->session()->put('locale', Auth::user()->lang);
+                }
                 return redirect(config('fortify.home'));
             }
         });
@@ -58,7 +60,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::loginView(fn(Request $request) => Inertia::render('auth/login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
             'canRegister' => Features::enabled(Features::registration()),
-            'status' => $request->session()->get('status'),
+            'status' => $request->hasSession() ? $request->session()->get('status') : null,
         ]));
 
         Fortify::resetPasswordView(fn(Request $request) => Inertia::render('auth/reset-password', [
@@ -67,11 +69,11 @@ class FortifyServiceProvider extends ServiceProvider
         ]));
 
         Fortify::requestPasswordResetLinkView(fn(Request $request) => Inertia::render('auth/forgot-password', [
-            'status' => $request->session()->get('status'),
+            'status' => $request->hasSession() ? $request->session()->get('status') : null,
         ]));
 
         Fortify::verifyEmailView(fn(Request $request) => Inertia::render('auth/verify-email', [
-            'status' => $request->session()->get('status'),
+            'status' => $request->hasSession() ? $request->session()->get('status') : null,
         ]));
 
         Fortify::registerView(fn() => Inertia::render('auth/register'));
@@ -94,6 +96,14 @@ class FortifyServiceProvider extends ServiceProvider
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())) . '|' . $request->ip());
 
             return Limit::perMinute(5)->by($throttleKey);
+        });
+
+        RateLimiter::for('registration', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
+
+        RateLimiter::for('search', function (Request $request) {
+            return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
         });
     }
 }
