@@ -21,4 +21,20 @@ class DashboardTest extends TestCase
 
         $this->get(route('dashboard'))->assertOk();
     }
+
+    public function test_authenticated_users_can_fetch_dashboard_data()
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->getJson(route('api.dashboard.show'))
+            ->assertOk()
+            ->assertJson([
+                'stats' => [
+                    'comments_count' => 0,
+                    'votes_count' => 0,
+                    'library_count' => 0,
+                ],
+                'recentLibraryGames' => [],
+            ]);
+    }
 }
