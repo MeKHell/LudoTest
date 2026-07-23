@@ -16,6 +16,7 @@
         "laravel/tinker": "^2.10.1",
         "laravel/wayfinder": "^0.1.9",
         "mtdowling/jmespath.php": "^2.8",
+        "predis/predis": "^2.3",
         "ext-curl": "*",
         "ext-simplexml": "*"
     },
