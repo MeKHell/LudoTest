@@ -1,0 +1,135 @@
+# Production stack: app (PHP-FPM + cron) + nginx + postgres + redis + queue.
+#   docker compose up -d --build
+#
+# Local development is not this file — use `composer dev` on the host.
+#
+# Secrets from the project .env (compose interpolation only):
+#   LUDOTEST_APP_KEY
+#   LUDOTEST_DB_PASSWORD
+#
+# To reuse Immich's Postgres/Valkey, use docker-compose.immich.yml instead.
+
+name: ludotest
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile
+    target: production
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  volumes:
+    - storage_data:/var/www/html/storage
+  networks:
+    - ludotest
+
+# Non-secret runtime config is fixed here. Only APP_KEY / DB password are injected.
+x-env: &env
+  APP_NAME: LudoTest
+  APP_ENV: production
+  APP_DEBUG: "false"
+  APP_URL: http://localhost:8081
+  APP_KEY: ${LUDOTEST_APP_KEY:?Set LUDOTEST_APP_KEY in .env}
+  LOG_CHANNEL: stack
+  LOG_LEVEL: warning
+  DB_CONNECTION: pgsql
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_DATABASE: ludotest
+  DB_USERNAME: ludotest
+  DB_PASSWORD: ${LUDOTEST_DB_PASSWORD:?Set LUDOTEST_DB_PASSWORD in .env}
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  REDIS_CLIENT: predis
+  CACHE_STORE: redis
+  SESSION_DRIVER: redis
+  QUEUE_CONNECTION: redis
+  BROADCAST_CONNECTION: log
+  FILESYSTEM_DISK: local
+  WAIT_FOR_DB: "true"
+  CACHE_CONFIG: "true"
+
+services:
+  app:
+    <<: *app
+    environment:
+      <<: *env
+      RUN_MIGRATIONS: "true"
+      ENABLE_CRON: "true"
+    expose:
+      - "9000"
+
+  queue:
+    <<: *app
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    environment:
+      <<: *env
+      RUN_MIGRATIONS: "false"
+      ENABLE_CRON: "false"
+      WAIT_FOR_DB: "true"
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "8081:80"
+    volumes:
+      - storage_data:/var/www/html/storage:ro
+    networks:
+      - ludotest
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ludotest
+      POSTGRES_USER: ludotest
+      POSTGRES_PASSWORD: ${LUDOTEST_DB_PASSWORD:?Set LUDOTEST_DB_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ludotest
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ludotest -d ludotest"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - ludotest
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  ludotest:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  storage_data:
+  redis_data:

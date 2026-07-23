@@ -27,5 +27,7 @@ yarn-error.log
 /.vscode
 /.zed
 .*
+!/.env.example
+!/.env.docker.example
 _*
 storage/jmespath

@@ -11,7 +11,7 @@ LudoTest is a board game database and review toy app built with Laravel 12 and R
 ## Key Technologies
 - **Backend:** Laravel 12, PHP 8.2+
 - **Frontend:** React, TypeScript, Inertia.js, Tailwind, Shadcn/UI
-- **Database:** SQLite (default for Docker/local)
+- **Database:** SQLite (default for Docker/local), pgsql on prod
 - **External APIs:** BoardGameGeek (BGG), optional `stub` demo provider
 
 ## Core Architecture
@@ -42,12 +42,15 @@ LudoTest is a board game database and review toy app built with Laravel 12 and R
 - `LibraryEntry` for per-user collections
 
 ## Deployment (Docker)
-Files in repo root: `Dockerfile`, `docker-entrypoint.sh`, `.dockerignore`, `docker/nginx.conf`.
+Files in repo root: `Dockerfile`, `docker/entrypoint.sh`, `docker-compose.yml`, optional `docker-compose.immich.yml`.
 
+- `docker compose up` is the **production** stack: app + nginx + postgres + redis + queue.
+- Secrets only: `LUDOTEST_APP_KEY`, `LUDOTEST_DB_PASSWORD` (see `.env.docker.example`).
+- Optional: `docker-compose.immich.yml` reuses Immich Postgres/Valkey (separate `ludotest` DB).
+- Local development: `composer dev` on the host (not Docker).
 - Multi-stage build: Composer + npm build, PHP-FPM + nginx runtime.
-- Extensions: `pdo_sqlite`, `curl`, `gd`, etc.
-- **Entrypoint** (not build): fixes `storage/`, `bootstrap/cache/`, `database/` permissions, touches SQLite, runs `php artisan migrate --force` (no `--seed`).
-- `vendor/` is root-owned and not writable by `www-data`.
+- Extensions: `pdo_pgsql`, `curl`, `gd`, etc.
+- **Entrypoint**: waits for DB when `WAIT_FOR_DB=true`, runs migrations when `RUN_MIGRATIONS=true`, optional cron.
 - Production `DatabaseSeeder` seeds roles, languages, sources only. Test users (`test0@example.com` / `password`) are created by `LocalDevelopmentSeeder` when `APP_ENV=local`.
 
 ## API rate limits
