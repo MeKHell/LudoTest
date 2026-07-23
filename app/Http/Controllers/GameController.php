@@ -28,18 +28,31 @@ class GameController extends Controller
 
     public function getLatest(): JsonResponse
     {
-        $games = Cache::remember('recent_games', 60, function() {
+        $games = Cache::remember('recent_games', 60, function () {
             return Game::query()
-                ->whereHas('comments')
-                ->orderByDesc(
-                    Comment::select('created_at')
-                        ->whereColumn('game_id', 'games.id')
-                        ->latest()
-                        ->limit(1)
-                )
-                ->take(10)
-                ->get();
+                ->select('games.id', 'games.name', 'games.thumb_url')
+                ->selectRaw('(
+                    SELECT MAX(activity_at) FROM (
+                        SELECT MAX(created_at) AS activity_at FROM comments WHERE game_id = games.id
+                        UNION ALL
+                        SELECT MAX(created_at) AS activity_at FROM answers WHERE game_id = games.id
+                    )
+                ) AS last_activity_at')
+                ->where(function ($query) {
+                    $query->whereHas('comments')
+                        ->orWhereHas('answers');
+                })
+                ->orderByDesc('last_activity_at')
+                ->limit(10)
+                ->get()
+                ->map(fn (Game $game) => [
+                    'id' => $game->id,
+                    'name' => $game->name,
+                    'thumb_url' => $game->thumb_url,
+                ])
+                ->values();
         });
+
         return response()->json($games);
     }
 
