@@ -12,4 +12,5 @@ return [
   'top_games_for_question' => 'Top 5 Spiele',
   'no_questions_yet' => 'Noch keine Fragen verfügbar',
   'no_answers_yet' => 'Noch keine Stimmen für diese Frage',
+  'copyright' => '© {year} LudoTest. Alle Rechte vorbehalten.',
 ];

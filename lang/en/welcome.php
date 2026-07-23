@@ -13,4 +13,5 @@ return [
   'top_games_for_question' => 'Top 5 games',
   'no_questions_yet' => 'No questions available yet',
   'no_answers_yet' => 'No votes yet for this question',
+  'copyright' => '© {year} LudoTest. All rights reserved.',
 ];
