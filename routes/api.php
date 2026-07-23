@@ -2,10 +2,13 @@
 
 use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\QuestionController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/dashboard', [DashboardController::class, 'show'])->name('api.dashboard.show');
 
 Route::middleware('throttle:search')->get('/search', [GameController::class, 'search'])->name('api.game.search');
 
