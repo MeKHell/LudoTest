@@ -4,6 +4,7 @@ use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\LibraryController;
+use App\Http\Controllers\QuestionController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('throttle:search')->get('/search', [GameController::class, 'search'])->name('api.game.search');
@@ -32,5 +33,6 @@ Route::post('/library', [LibraryController::class, 'store'])->name('api.library.
 Route::delete('/library/{libraryEntry}', [LibraryController::class, 'destroy'])->name('api.library.destroy');
 
 // Answers & Questions
+Route::get('/questions', [QuestionController::class, 'index'])->name('api.question.index');
 Route::get('/answers/{game_id}', [AnswerController::class, 'get'])->name('api.answer.get');
 Route::post('/answers/{game_id}', [AnswerController::class, 'vote'])->name('api.answer.post');
