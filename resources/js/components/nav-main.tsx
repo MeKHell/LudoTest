@@ -15,7 +15,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
     const { t } = useLang();
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>{t('app.platform') || 'Platform'}</SidebarGroupLabel>
+            <SidebarGroupLabel>{t('menu.platform')}</SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => (
                     <SidebarMenuItem key={t(item.title)}>

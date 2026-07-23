@@ -22,12 +22,12 @@ export function AppSidebar() {
 
     const mainNavItems: NavItem[] = [
         {
-            title: 'app.dashboard',
+            title: 'menu.dashboard',
             href: dashboard(),
             icon: LayoutGrid,
         },
         {
-            title: 'app.search',
+            title: 'menu.search',
             href: '/search',
             icon: Search,
         },
@@ -35,12 +35,12 @@ export function AppSidebar() {
 
     const footerNavItems: NavItem[] = [
         {
-            title: 'app.ludoCH',
+            title: 'menu.ludoCH',
             href: 'https://ludo.ch',
             icon: LinkIcon,
         },
         {
-            title: 'app.project',
+            title: 'menu.project',
             href: 'https://github.com/MeKHell/LudoTest',
             icon: Folder,
         },
