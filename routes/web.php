@@ -3,9 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', function () {
-        syncLangFiles(['welcome', 'auth', 'menu']);
+        syncLangFiles(['dashboard', 'menu']);
         return Inertia::render('dashboard');
     })->name('dashboard');
 
@@ -32,10 +32,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         syncLangFiles(['search', 'menu']);
         return Inertia::render('search');
     });
-
-    Route::get('admin-test', function () {
-        return 'Admin Only';
-    })->middleware('admin');
 });
 
 require __DIR__ . '/settings.php';
