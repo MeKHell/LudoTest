@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge';
+import Loading from '@/components/loading';
 import {
     Card,
     CardContent,
@@ -7,63 +7,99 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
+import { game_internal } from '@/routes';
+import { Question } from '@/types';
 import { router, Head } from '@inertiajs/react';
-import { Clock, Search, Spade, Star, TrendingUp, Users, ArrowRight } from 'lucide-react';
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, Clock, HelpCircle, ImageOff, Search, Spade, Star } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
-const featuredGames = [
-    {
-        id: 1,
-        title: 'Wingspan',
-        image: '/wingspan-board-game-box.png',
-        rating: 4.8,
-        reviews: 1247,
-        players: '1-5',
-        playTime: '40-70 min',
-        complexity: 2.4,
-        description:
-            'A competitive, medium-weight, card-driven, engine-building board game.',
-    },
-    {
-        id: 2,
-        title: 'Azul',
-        image: '/azul-board-game-colorful-tiles.png',
-        rating: 4.6,
-        reviews: 892,
-        players: '2-4',
-        playTime: '30-45 min',
-        complexity: 1.8,
-        description:
-            'A tile-placement game where players compete to create beautiful patterns.',
-    },
-    {
-        id: 3,
-        title: 'Gloomhaven',
-        image: '/gloomhaven-fantasy-board-game.png',
-        rating: 4.9,
-        reviews: 2156,
-        players: '1-4',
-        playTime: '60-120 min',
-        complexity: 3.8,
-        description:
-            'A game of Euro-inspired tactical combat in a persistent world.',
-    },
-];
+interface WelcomeGame {
+    id: number;
+    name: string;
+    thumb_url: string | null;
+}
 
-const popularGames = [
-    { title: 'Ticket to Ride', rating: 4.5, trend: '+12%' },
-    { title: 'Catan', rating: 4.3, trend: '+8%' },
-    { title: 'Pandemic', rating: 4.7, trend: '+15%' },
-    { title: '7 Wonders', rating: 4.4, trend: '+6%' },
-    { title: 'Splendor', rating: 4.2, trend: '+10%' },
-];
+interface TopGame extends WelcomeGame {
+    average_score: number;
+    votes_count: number;
+}
+
+interface WelcomeQuestion extends Question {
+    top_games: TopGame[];
+}
+
+function GameCard({
+    game,
+    onClick,
+    rank,
+    score,
+}: {
+    game: WelcomeGame;
+    onClick: () => void;
+    rank?: number;
+    score?: number;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="group w-40 shrink-0 overflow-hidden rounded-lg border bg-card text-left transition-shadow hover:shadow-md sm:w-auto"
+        >
+            <div className="relative aspect-square overflow-hidden bg-muted">
+                {game.thumb_url ? (
+                    <img
+                        src={game.thumb_url}
+                        alt={game.name}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                        <ImageOff className="h-10 w-10 text-muted-foreground" />
+                    </div>
+                )}
+                {rank !== undefined && (
+                    <div className="absolute top-2 left-2 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                        {rank}
+                    </div>
+                )}
+                {score !== undefined && (
+                    <div className="absolute right-2 bottom-2 flex items-center gap-1 rounded-full bg-black/75 px-2 py-1 text-xs font-semibold text-white">
+                        <Star className="h-3 w-3 fill-current" />
+                        {score.toFixed(1)}
+                    </div>
+                )}
+            </div>
+            <div className="p-3">
+                <p className="line-clamp-2 text-sm font-medium">{game.name}</p>
+            </div>
+        </button>
+    );
+}
 
 function Welcome() {
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const { t } = useLang();
+    const [recentGames, setRecentGames] = useState<WelcomeGame[]>([]);
+    const [questions, setQuestions] = useState<WelcomeQuestion[]>([]);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+    const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
+    const { t, locale } = useLang();
+
+    useEffect(() => {
+        fetch('/api/latest', { headers: { Accept: 'application/json' } })
+            .then((response) => response.json())
+            .then((data: WelcomeGame[]) => setRecentGames(data))
+            .catch((error) => console.error('Failed to load recent games', error))
+            .finally(() => setIsLoadingHistory(false));
+
+        fetch('/api/questions', { headers: { Accept: 'application/json' } })
+            .then((response) => response.json())
+            .then((data) => setQuestions(data.questions ?? []))
+            .catch((error) => console.error('Failed to load questions', error))
+            .finally(() => setIsLoadingQuestions(false));
+    }, []);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -72,10 +108,13 @@ function Welcome() {
         }
     };
 
+    const visitGame = (gameId: number) => {
+        router.visit(game_internal.url(gameId));
+    };
+
     return (
         <div className="min-h-screen bg-background">
             <Head title="LudoTest" />
-            {/* Hero Section */}
             <section className="px-4 py-20">
                 <div className="container mx-auto text-center">
                     <h1 className="mb-6 text-4xl font-bold text-balance md:text-6xl">
@@ -85,7 +124,6 @@ function Welcome() {
                         {t('welcome.subtitle')}
                     </p>
 
-                    {/* Search Bar */}
                     <form onSubmit={handleSearch} className="mx-auto mb-12 max-w-md">
                         <div className="relative flex gap-2">
                             <div className="relative flex-1">
@@ -106,245 +144,110 @@ function Welcome() {
                 </div>
             </section>
 
-            {/* Featured Games */}
-            <section className="bg-muted/30 px-4 py-16">
-                <div className="container mx-auto">
-                    <h2 className="mb-12 text-center text-3xl font-bold">
-                        {t('welcome.featured')}
-                    </h2>
-
-                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-                        {featuredGames.map((game) => (
-                            <Card className="overflow-hidden transition-shadow hover:shadow-lg">
-                                <div className="aspect-video overflow-hidden">
-                                    <img
-                                        src={game.image || '/placeholder.svg'}
-                                        alt={game.title}
-                                        className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-                                    />
-                                </div>
-                                <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle className="text-xl">
-                                            {game.title}
-                                        </CardTitle>
-                                        <div className="flex items-center gap-1">
-                                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                            <span className="font-semibold">
-                                                {game.rating}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <CardDescription>
-                                        {game.description}
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="mb-4 flex items-center justify-between text-sm text-muted-foreground">
-                                        <div className="flex items-center gap-1">
-                                            <Users className="h-4 w-4" />
-                                            {game.players}
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <Clock className="h-4 w-4" />
-                                            {game.playTime}
-                                        </div>
-                                        <Badge variant="secondary">
-                                            Complexity: {game.complexity}/5
-                                        </Badge>
-                                    </div>
-                                    <div className="text-sm text-muted-foreground">
-                                        {game.reviews} {t('welcome.reviews')}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Popular This Week */}
             <section className="px-4 py-16">
-                <div className="container mx-auto">
-                    <h2 className="mb-12 text-center text-3xl font-bold">
-                        {t('welcome.popular')}
-                    </h2>
+                <div className="container mx-auto max-w-6xl">
+                    <div className="mb-8 text-center">
+                        <h2 className="mb-4 text-3xl font-bold">{t('welcome.history_title')}</h2>
+                        <p className="mx-auto max-w-2xl text-muted-foreground">
+                            {t('welcome.history_subtitle')}
+                        </p>
+                    </div>
 
-                    <div className="mx-auto max-w-2xl">
+                    {isLoadingHistory ? (
+                        <Loading />
+                    ) : recentGames.length === 0 ? (
+                        <p className="text-center text-muted-foreground">
+                            {t('welcome.no_recent_games')}
+                        </p>
+                    ) : (
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <TrendingUp className="h-5 w-5 text-primary" />
-                                    Trending Games
+                                    <Clock className="h-5 w-5 text-primary" />
+                                    {t('welcome.history_title')}
                                 </CardTitle>
+                                <CardDescription>{t('welcome.history_subtitle')}</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="space-y-4">
-                                    {popularGames.map((game, index) => (
-                                        <div className="flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-muted/50">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground">
-                                                    {index + 1}
-                                                </div>
-                                                <div>
-                                                    <div className="font-medium">
-                                                        {game.title}
-                                                    </div>
-                                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                                        {game.rating}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <Badge
-                                                variant="outline"
-                                                className="border-green-600 text-green-600"
-                                            >
-                                                {game.trend}
-                                            </Badge>
-                                        </div>
+                                <div className="flex gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:overflow-visible md:grid-cols-5 lg:grid-cols-5">
+                                    {recentGames.map((game) => (
+                                        <GameCard
+                                            key={game.id}
+                                            game={game}
+                                            onClick={() => visitGame(game.id)}
+                                        />
                                     ))}
                                 </div>
                             </CardContent>
                         </Card>
-                    </div>
+                    )}
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="border-t bg-card px-4 py-12">
-                <div className="container mx-auto">
-                    <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-                        <div>
-                            <div className="mb-4 flex items-center gap-2">
-                                <Spade className="h-6 w-6 text-primary" />
-                                <span className="text-lg font-bold text-primary">
-                                    LudoTest
-                                </span>
-                            </div>
-                            <p className="text-muted-foreground">
-                                The ultimate platform for board game enthusiasts
-                                to discover, rate, and review games.
-                            </p>
-                        </div>
-
-                        <div>
-                            <h3 className="mb-4 font-semibold">Platform</h3>
-                            <ul className="space-y-2 text-muted-foreground">
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="transition-colors hover:text-foreground"
-                                    >
-                                        Browse Games
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="transition-colors hover:text-foreground"
-                                    >
-                                        Top Rated
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="transition-colors hover:text-foreground"
-                                    >
-                                        New Releases
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="transition-colors hover:text-foreground"
-                                    >
-                                        Categories
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 className="mb-4 font-semibold">Community</h3>
-                            <ul className="space-y-2 text-muted-foreground">
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="transition-colors hover:text-foreground"
-                                    >
-                                        Forums
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="transition-colors hover:text-foreground"
-                                    >
-                                        Reviews
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="transition-colors hover:text-foreground"
-                                    >
-                                        Events
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="transition-colors hover:text-foreground"
-                                    >
-                                        Blog
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 className="mb-4 font-semibold">Support</h3>
-                            <ul className="space-y-2 text-muted-foreground">
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="transition-colors hover:text-foreground"
-                                    >
-                                        Help Center
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="transition-colors hover:text-foreground"
-                                    >
-                                        Contact Us
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="transition-colors hover:text-foreground"
-                                    >
-                                        Privacy Policy
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="transition-colors hover:text-foreground"
-                                    >
-                                        Terms of Service
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
+            <section className="bg-muted/30 px-4 py-16">
+                <div className="container mx-auto max-w-6xl">
+                    <div className="mb-12 text-center">
+                        <h2 className="mb-4 text-3xl font-bold">
+                            {t('welcome.questions_title')}
+                        </h2>
+                        <p className="mx-auto max-w-2xl text-muted-foreground">
+                            {t('welcome.questions_subtitle')}
+                        </p>
                     </div>
 
+                    {isLoadingQuestions ? (
+                        <Loading />
+                    ) : questions.length === 0 ? (
+                        <p className="text-center text-muted-foreground">
+                            {t('welcome.no_questions_yet')}
+                        </p>
+                    ) : (
+                        <div className="space-y-10">
+                            {questions.map((question) => (
+                                <Card key={question.id}>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-start gap-2 text-lg">
+                                            <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                                            <span>{question.translations[locale]}</span>
+                                        </CardTitle>
+                                        <CardDescription>
+                                            {t('welcome.top_games_for_question')}
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {question.top_games.length === 0 ? (
+                                            <p className="text-muted-foreground">
+                                                {t('welcome.no_answers_yet')}
+                                            </p>
+                                        ) : (
+                                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+                                                {question.top_games.map((game, index) => (
+                                                    <GameCard
+                                                        key={game.id}
+                                                        game={game}
+                                                        rank={index + 1}
+                                                        score={game.average_score}
+                                                        onClick={() => visitGame(game.id)}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            <footer className="border-t bg-card px-4 py-12">
+                <div className="container mx-auto">
+                    <div className="flex items-center gap-2">
+                        <Spade className="h-6 w-6 text-primary" />
+                        <span className="text-lg font-bold text-primary">LudoTest</span>
+                    </div>
                     <div className="mt-8 border-t pt-8 text-center text-muted-foreground">
-                        <p>&copy; 2025 LudoTest. All rights reserved.</p>
+                        <p>{t('welcome.copyright', { year: new Date().getFullYear() })}</p>
                     </div>
                 </div>
             </footer>
