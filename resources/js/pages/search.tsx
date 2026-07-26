@@ -30,11 +30,140 @@ interface SearchPageProps {
     query: string;
 }
 
+type TranslateFn = (key: string, replaces?: Record<string, string | number> | string) => string;
+
+function ResultCard({
+    result,
+    t,
+    onAddToLibrary,
+}: {
+    result: SearchResult;
+    t: TranslateFn;
+    onAddToLibrary: (e: React.MouseEvent, gameId: number, listType: 'owned' | 'wishlist') => void;
+}) {
+    return (
+        <Card
+            className="group cursor-pointer overflow-hidden border-muted-foreground/20 transition-all hover:border-primary/50 hover:shadow-md"
+            onClick={() => {
+                if (result.is_local) {
+                    router.visit(game_internal.url(result.id));
+                } else {
+                    router.visit(`/game/${result.source}/${result.id}?name=${encodeURIComponent(result.name)}`);
+                }
+            }}
+        >
+            <CardContent className="relative flex items-center gap-4 p-4">
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded bg-muted">
+                    {result.thumb_url ? (
+                        <img
+                            src={result.thumb_url}
+                            alt={result.name}
+                            className="h-full w-full object-cover"
+                        />
+                    ) : (
+                        <ImageOff className="h-8 w-8 text-muted-foreground" />
+                    )}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                        <h3 className="truncate text-lg font-semibold transition-colors group-hover:text-primary">
+                            {result.name}
+                        </h3>
+                        <div className="flex shrink-0 items-center gap-2">
+                            {/* Saved in LudoTest DB (not the same as the user's personal library) */}
+                            {result.is_local && (
+                                <Badge variant="secondary">
+                                    {t('search.in_database') || 'In Database'}
+                                </Badge>
+                            )}
+                            {result.list_types.includes('owned') && (
+                                <Badge variant="default">
+                                    {t('search.owned') || 'Owned'}
+                                </Badge>
+                            )}
+                            {result.list_types.includes('wishlist') && (
+                                <Badge variant="outline">
+                                    {t('search.wishlist') || 'Wishlist'}
+                                </Badge>
+                            )}
+                            <div
+                                className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-border bg-white p-1 shadow-sm"
+                                title={result.source.toUpperCase()}
+                            >
+                                {result.source === 'local' ? (
+                                    <img src="/favicon.svg" alt="LudoTest" className="h-full w-full object-contain" />
+                                ) : result.source === 'bgg' || result.source === 'bggv' ? (
+                                    <img src="https://boardgamegeek.com/favicon.ico" alt="BGG" className="h-full w-full object-contain" />
+                                ) : (
+                                    <span className="text-[10px] font-bold">{result.source[0].toUpperCase()}</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                        {result.pub_year && <span>{result.pub_year}</span>}
+                        <span className="text-muted-foreground/50">•</span>
+                        <span>{result.source.toUpperCase()}</span>
+
+                        {(result.min_players || result.box_time) && (
+                            <>
+                                <span className="text-muted-foreground/50">•</span>
+                                {result.min_players && (
+                                    <span className="flex items-center gap-1">
+                                        <Users className="h-3 w-3" />
+                                        {result.min_players}
+                                        {result.max_players ? `-${result.max_players}` : ''}
+                                    </span>
+                                )}
+                                {result.box_time && (
+                                    <span className="flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        {result.box_time} min
+                                    </span>
+                                )}
+                            </>
+                        )}
+                    </div>
+
+                    {/* Personal library actions — only for games already in the local DB */}
+                    {result.is_local && (
+                        <div className="mt-2 flex gap-2">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => onAddToLibrary(e, Number(result.id), 'owned')}
+                            >
+                                {result.list_types.includes('owned') ? (
+                                    <BookmarkCheck className="mr-1 h-3 w-3" />
+                                ) : (
+                                    <Bookmark className="mr-1 h-3 w-3" />
+                                )}
+                                {t('search.add_owned') || 'Owned'}
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => onAddToLibrary(e, Number(result.id), 'wishlist')}
+                            >
+                                <Star className="mr-1 h-3 w-3" />
+                                {t('search.add_wishlist') || 'Wishlist'}
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 function SearchPage({ query: initialQuery }: SearchPageProps) {
     const { t } = useLang();
     const { url } = usePage();
     const [query, setQuery] = useState(initialQuery || '');
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+    const [randomGames, setRandomGames] = useState<SearchResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -90,6 +219,15 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
     const addToLibrary = (e: React.MouseEvent, gameId: number, listType: 'owned' | 'wishlist') => {
         e.stopPropagation(); // Don't also open the game page
 
+        const markInLibrary = (r: SearchResult): SearchResult =>
+            r.id === gameId && r.is_local
+                ? {
+                      ...r,
+                      in_user_library: true,
+                      list_types: [...new Set([...r.list_types, listType])],
+                  }
+                : r;
+
         router.post(
             '/api/library',
             { game_id: gameId, list_type: listType },
@@ -97,17 +235,8 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
                 preserveScroll: true,
                 preserveState: true,
                 onSuccess: () => {
-                    setSearchResults((prev) =>
-                        prev.map((r) =>
-                            r.id === gameId && r.is_local
-                                ? {
-                                      ...r,
-                                      in_user_library: true,
-                                      list_types: [...new Set([...r.list_types, listType])],
-                                  }
-                                : r,
-                        ),
-                    );
+                    setSearchResults((prev) => prev.map(markInLibrary));
+                    setRandomGames((prev) => prev.map(markInLibrary));
                 },
             },
         );
@@ -147,6 +276,22 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
             setHasSearched(false);
         }
     }, [performSearch, url]);
+
+    // When no search is active, show a (server-cached) random pick of local games
+    useEffect(() => {
+        fetch('/api/random', { headers: { Accept: 'application/json' } })
+            .then((response) => response.json())
+            .then((data: SearchResult[]) =>
+                setRandomGames(
+                    data.map((item) => ({
+                        ...item,
+                        in_user_library: item.in_user_library ?? false,
+                        list_types: item.list_types ?? [],
+                    })),
+                ),
+            )
+            .catch((error) => console.error('Error fetching random games', error));
+    }, []);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -208,120 +353,12 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
                 ) : searchResults.length > 0 ? (
                     <div className="space-y-4">
                         {searchResults.map((result) => (
-                            <Card
+                            <ResultCard
                                 key={`${result.source}-${result.id}`}
-                                className="group cursor-pointer overflow-hidden border-muted-foreground/20 transition-all hover:border-primary/50 hover:shadow-md"
-                                onClick={() => {
-                                    if (result.is_local) {
-                                        router.visit(game_internal.url(result.id));
-                                    } else {
-                                        router.visit(`/game/${result.source}/${result.id}?name=${encodeURIComponent(result.name)}`);
-                                    }
-                                }}
-                            >
-                                <CardContent className="relative flex items-center gap-4 p-4">
-                                    <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded bg-muted">
-                                        {result.thumb_url ? (
-                                            <img
-                                                src={result.thumb_url}
-                                                alt={result.name}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : (
-                                            <ImageOff className="h-8 w-8 text-muted-foreground" />
-                                        )}
-                                    </div>
-
-                                    <div className="min-w-0 flex-1">
-                                        <div className="mb-1 flex items-center justify-between gap-2">
-                                            <h3 className="truncate text-lg font-semibold transition-colors group-hover:text-primary">
-                                                {result.name}
-                                            </h3>
-                                            <div className="flex shrink-0 items-center gap-2">
-                                                {/* Saved in LudoTest DB (not the same as the user's personal library) */}
-                                                {result.is_local && (
-                                                    <Badge variant="secondary">
-                                                        {t('search.in_database') || 'In Database'}
-                                                    </Badge>
-                                                )}
-                                                {result.list_types.includes('owned') && (
-                                                    <Badge variant="default">
-                                                        {t('search.owned') || 'Owned'}
-                                                    </Badge>
-                                                )}
-                                                {result.list_types.includes('wishlist') && (
-                                                    <Badge variant="outline">
-                                                        {t('search.wishlist') || 'Wishlist'}
-                                                    </Badge>
-                                                )}
-                                                <div
-                                                    className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-border bg-white p-1 shadow-sm"
-                                                    title={result.source.toUpperCase()}
-                                                >
-                                                    {result.source === 'local' ? (
-                                                        <img src="/favicon.svg" alt="LudoTest" className="h-full w-full object-contain" />
-                                                    ) : result.source === 'bgg' || result.source === 'bggv' ? (
-                                                        <img src="https://boardgamegeek.com/favicon.ico" alt="BGG" className="h-full w-full object-contain" />
-                                                    ) : (
-                                                        <span className="text-[10px] font-bold">{result.source[0].toUpperCase()}</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                            {result.pub_year && <span>{result.pub_year}</span>}
-                                            <span className="text-muted-foreground/50">•</span>
-                                            <span>{result.source.toUpperCase()}</span>
-
-                                            {(result.min_players || result.box_time) && (
-                                                <>
-                                                    <span className="text-muted-foreground/50">•</span>
-                                                    {result.min_players && (
-                                                        <span className="flex items-center gap-1">
-                                                            <Users className="h-3 w-3" />
-                                                            {result.min_players}
-                                                            {result.max_players ? `-${result.max_players}` : ''}
-                                                        </span>
-                                                    )}
-                                                    {result.box_time && (
-                                                        <span className="flex items-center gap-1">
-                                                            <Clock className="h-3 w-3" />
-                                                            {result.box_time} min
-                                                        </span>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
-
-                                        {/* Personal library actions — only for games already in the local DB */}
-                                        {result.is_local && (
-                                            <div className="mt-2 flex gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={(e) => addToLibrary(e, Number(result.id), 'owned')}
-                                                >
-                                                    {result.list_types.includes('owned') ? (
-                                                        <BookmarkCheck className="mr-1 h-3 w-3" />
-                                                    ) : (
-                                                        <Bookmark className="mr-1 h-3 w-3" />
-                                                    )}
-                                                    {t('search.add_owned') || 'Owned'}
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    onClick={(e) => addToLibrary(e, Number(result.id), 'wishlist')}
-                                                >
-                                                    <Star className="mr-1 h-3 w-3" />
-                                                    {t('search.add_wishlist') || 'Wishlist'}
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                result={result}
+                                t={t}
+                                onAddToLibrary={addToLibrary}
+                            />
                         ))}
                         <div ref={observerTarget} className="h-20" />
                         {showLoader && (
@@ -330,17 +367,31 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
                             </div>
                         )}
                     </div>
+                ) : hasSearched ? (
+                    <div className="flex flex-col items-center justify-center py-16">
+                        <Search className="mb-4 h-16 w-16 text-muted-foreground" />
+                        <h2 className="mb-2 text-xl font-semibold">
+                            {t('search.no_results_title') || 'No games found'}
+                        </h2>
+                        <p className="text-muted-foreground">
+                            {t('search.no_results_description') || 'Try adjusting your search terms'}
+                        </p>
+                    </div>
                 ) : (
-                    hasSearched &&
-                    !isLoading && (
-                        <div className="flex flex-col items-center justify-center py-16">
-                            <Search className="mb-4 h-16 w-16 text-muted-foreground" />
-                            <h2 className="mb-2 text-xl font-semibold">
-                                {t('search.no_results_title') || 'No games found'}
+                    /* No active search: show a random pick from the local database */
+                    randomGames.length > 0 && (
+                        <div className="space-y-4">
+                            <h2 className="text-xl font-semibold">
+                                {t('search.discover') || 'Discover games'}
                             </h2>
-                            <p className="text-muted-foreground">
-                                {t('search.no_results_description') || 'Try adjusting your search terms'}
-                            </p>
+                            {randomGames.map((result) => (
+                                <ResultCard
+                                    key={`${result.source}-${result.id}`}
+                                    result={result}
+                                    t={t}
+                                    onAddToLibrary={addToLibrary}
+                                />
+                            ))}
                         </div>
                     )
                 )}

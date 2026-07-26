@@ -45,6 +45,10 @@ class LibraryController extends Controller
             'list_type' => $validated['list_type'],
         ]);
 
+        if ($request->header('X-Inertia')) {
+            return back();
+        }
+
         return response()->json([
             'id' => $entry->id,
             'list_type' => $entry->list_type,

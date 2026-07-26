@@ -56,6 +56,37 @@ class GameController extends Controller
         return response()->json($games);
     }
 
+    public function getRandom(Request $request): JsonResponse
+    {
+        // Cache the random selection (IDs only) for everyone for 1 hour so the
+        // list stays stable. Library badges are still resolved per-user below.
+        $ids = Cache::remember('random_games', now()->addHour(), function () {
+            return Game::query()
+                ->whereNull('version_of')
+                ->inRandomOrder()
+                ->limit(20)
+                ->pluck('id')
+                ->all();
+        });
+
+        if ($ids === []) {
+            return response()->json([]);
+        }
+
+        $games = Game::query()
+            ->with('gameSources', 'languages')
+            ->whereIn('id', $ids)
+            ->get();
+
+        $results = $games->map(fn (Game $game) => [
+            'game' => $game,
+            'external' => null,
+            'score' => 0,
+        ]);
+
+        return response()->json(\App\Http\Resources\SearchResultResource::collection($results));
+    }
+
     public function search(Request $request): JsonResponse
     {
         $validated = $request->validate([

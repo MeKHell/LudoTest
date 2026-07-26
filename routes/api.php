@@ -16,6 +16,8 @@ Route::get('/trending', [GameController::class, 'getTrending'])->name('api.game.
 
 Route::get('/latest', [GameController::class, 'getLatest'])->name('api.game.latest');
 
+Route::get('/random', [GameController::class, 'getRandom'])->name('api.game.random');
+
 Route::get('/game/{src}/{id}', function($src, $id) {
     return app(GameController::class)->get($id, $src);
 })->name('api.game.get')->whereIn('src', array_keys(config("app.src_list")));
