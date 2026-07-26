@@ -7,7 +7,7 @@ import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
 import { game_internal } from '@/routes';
 import { router, usePage } from '@inertiajs/react';
-import { Clock, ImageOff, Loader2, Search, Star, Users } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Clock, ImageOff, Loader2, Search, Star, Users } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 interface SearchResult {
@@ -16,6 +16,8 @@ interface SearchResult {
     thumb_url: string | null;
     pub_year: number | null;
     is_local: boolean;
+    in_user_library: boolean;
+    list_types: string[];
     source: string;
     external_id: string | null;
     score: number;
@@ -51,8 +53,7 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
             setIsFetchingMore(true);
         }
 
-        // Add 0.1s delay to loader visibility
-        const loaderTimer = setTimeout(() => setShowLoader(true), 100);
+        const loaderTimer = setTimeout(() => setShowLoader(true), 100); // Delay loader so fast responses don't flash
 
         try {
             const response = await fetch(
@@ -61,14 +62,20 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
             );
 
             const data = await response.json();
-            
+            // Library fields are only present for local games; default them for external hits.
+            const normalized = data.map((item: SearchResult) => ({
+                ...item,
+                in_user_library: item.in_user_library ?? false,
+                list_types: item.list_types ?? [],
+            }));
+
             if (pageNum === 1) {
-                setSearchResults(data);
+                setSearchResults(normalized);
             } else {
-                setSearchResults(prev => [...prev, ...data]);
+                setSearchResults(prev => [...prev, ...normalized]);
             }
-            
-            setHasMore(data.length === 50);
+
+            setHasMore(normalized.length === 50);
         } catch (error) {
             console.error('Error fetching search results:', error);
         } finally {
@@ -79,7 +86,34 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
         }
     }, []);
 
-    // Intersection Observer for infinite scroll (3 rows trigger)
+    // Add a local game to the user's owned/wishlist lists (Inertia handles CSRF)
+    const addToLibrary = (e: React.MouseEvent, gameId: number, listType: 'owned' | 'wishlist') => {
+        e.stopPropagation(); // Don't also open the game page
+
+        router.post(
+            '/api/library',
+            { game_id: gameId, list_type: listType },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    setSearchResults((prev) =>
+                        prev.map((r) =>
+                            r.id === gameId && r.is_local
+                                ? {
+                                      ...r,
+                                      in_user_library: true,
+                                      list_types: [...new Set([...r.list_types, listType])],
+                                  }
+                                : r,
+                        ),
+                    );
+                },
+            },
+        );
+    };
+
+    // Infinite scroll: load the next page when the sentinel nears the viewport
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
@@ -100,7 +134,7 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
         };
     }, [hasMore, isFetchingMore, page, query, performSearch]);
 
-    // Trigger search when query in URL changes
+    // Re-run search when the ?q= query string changes (including from the form submit)
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const q = params.get('q');
@@ -114,7 +148,6 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
         }
     }, [performSearch, url]);
 
-    // Handle search input
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (query.trim()) {
@@ -132,13 +165,12 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
     return (
         <div className="min-h-screen bg-background">
             <div className="container mx-auto px-4 py-8">
-                {/* Search Header */}
+                {/* Search header + form */}
                 <div className="mb-8">
                     <h1 className="mb-4 text-3xl font-bold">
                         {t('search.title') || 'Search Games'}
                     </h1>
 
-                    {/* Search Form */}
                     <form onSubmit={handleSearch} className="flex gap-2">
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -160,7 +192,6 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
                         </Button>
                     </form>
 
-                    {/* Results Count */}
                     {hasSearched && !isLoading && (
                         <p className="mt-4 text-sm text-muted-foreground">
                             {searchResults.length
@@ -170,7 +201,6 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
                     )}
                 </div>
 
-                {/* Results Grid */}
                 {isLoading ? (
                     <div className="flex justify-center py-12">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -180,7 +210,7 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
                         {searchResults.map((result) => (
                             <Card
                                 key={`${result.source}-${result.id}`}
-                                className="group overflow-hidden transition-all hover:shadow-md cursor-pointer border-muted-foreground/20 hover:border-primary/50"
+                                className="group cursor-pointer overflow-hidden border-muted-foreground/20 transition-all hover:border-primary/50 hover:shadow-md"
                                 onClick={() => {
                                     if (result.is_local) {
                                         router.visit(game_internal.url(result.id));
@@ -189,8 +219,8 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
                                     }
                                 }}
                             >
-                                <CardContent className="p-4 flex gap-4 items-center relative">
-                                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded bg-muted flex items-center justify-center">
+                                <CardContent className="relative flex items-center gap-4 p-4">
+                                    <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded bg-muted">
                                         {result.thumb_url ? (
                                             <img
                                                 src={result.thumb_url}
@@ -201,20 +231,33 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
                                             <ImageOff className="h-8 w-8 text-muted-foreground" />
                                         )}
                                     </div>
-                                    
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between gap-2 mb-1">
-                                            <h3 className="text-lg font-semibold truncate group-hover:text-primary transition-colors">
+
+                                    <div className="min-w-0 flex-1">
+                                        <div className="mb-1 flex items-center justify-between gap-2">
+                                            <h3 className="truncate text-lg font-semibold transition-colors group-hover:text-primary">
                                                 {result.name}
                                             </h3>
-                                            <div className="flex items-center gap-2 shrink-0">
+                                            <div className="flex shrink-0 items-center gap-2">
+                                                {/* Saved in LudoTest DB (not the same as the user's personal library) */}
                                                 {result.is_local && (
                                                     <Badge variant="secondary">
-                                                        <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
-                                                        {t('search.in_library') || 'In Library'}
+                                                        {t('search.in_database') || 'In Database'}
                                                     </Badge>
                                                 )}
-                                                <div className="h-6 w-6 rounded-full overflow-hidden border border-border bg-white p-1 flex items-center justify-center shadow-sm" title={result.source.toUpperCase()}>
+                                                {result.list_types.includes('owned') && (
+                                                    <Badge variant="default">
+                                                        {t('search.owned') || 'Owned'}
+                                                    </Badge>
+                                                )}
+                                                {result.list_types.includes('wishlist') && (
+                                                    <Badge variant="outline">
+                                                        {t('search.wishlist') || 'Wishlist'}
+                                                    </Badge>
+                                                )}
+                                                <div
+                                                    className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-border bg-white p-1 shadow-sm"
+                                                    title={result.source.toUpperCase()}
+                                                >
                                                     {result.source === 'local' ? (
                                                         <img src="/favicon.svg" alt="LudoTest" className="h-full w-full object-contain" />
                                                     ) : result.source === 'bgg' || result.source === 'bggv' ? (
@@ -230,25 +273,52 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
                                             {result.pub_year && <span>{result.pub_year}</span>}
                                             <span className="text-muted-foreground/50">•</span>
                                             <span>{result.source.toUpperCase()}</span>
-                                            
+
                                             {(result.min_players || result.box_time) && (
                                                 <>
                                                     <span className="text-muted-foreground/50">•</span>
                                                     {result.min_players && (
                                                         <span className="flex items-center gap-1">
-                                                            <Users className="w-3 h-3" />
-                                                            {result.min_players}{result.max_players ? `-${result.max_players}` : ''}
+                                                            <Users className="h-3 w-3" />
+                                                            {result.min_players}
+                                                            {result.max_players ? `-${result.max_players}` : ''}
                                                         </span>
                                                     )}
                                                     {result.box_time && (
                                                         <span className="flex items-center gap-1">
-                                                            <Clock className="w-3 h-3" />
+                                                            <Clock className="h-3 w-3" />
                                                             {result.box_time} min
                                                         </span>
                                                     )}
                                                 </>
                                             )}
                                         </div>
+
+                                        {/* Personal library actions — only for games already in the local DB */}
+                                        {result.is_local && (
+                                            <div className="mt-2 flex gap-2">
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={(e) => addToLibrary(e, Number(result.id), 'owned')}
+                                                >
+                                                    {result.list_types.includes('owned') ? (
+                                                        <BookmarkCheck className="mr-1 h-3 w-3" />
+                                                    ) : (
+                                                        <Bookmark className="mr-1 h-3 w-3" />
+                                                    )}
+                                                    {t('search.add_owned') || 'Owned'}
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={(e) => addToLibrary(e, Number(result.id), 'wishlist')}
+                                                >
+                                                    <Star className="mr-1 h-3 w-3" />
+                                                    {t('search.add_wishlist') || 'Wishlist'}
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -261,7 +331,8 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
                         )}
                     </div>
                 ) : (
-                    hasSearched && !isLoading && (
+                    hasSearched &&
+                    !isLoading && (
                         <div className="flex flex-col items-center justify-center py-16">
                             <Search className="mb-4 h-16 w-16 text-muted-foreground" />
                             <h2 className="mb-2 text-xl font-semibold">
@@ -283,4 +354,3 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
 SearchPage.layout = (page: React.ReactNode) => <AppLayout>{page}</AppLayout>;
 
 export default SearchPage;
-
