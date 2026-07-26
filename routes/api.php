@@ -35,6 +35,9 @@ Route::delete('/comment/{comment}', [CommentController::class, 'deleteComment'])
 // Library
 Route::get('/library', [LibraryController::class, 'index'])->name('api.library.index');
 Route::post('/library', [LibraryController::class, 'store'])->name('api.library.store');
+Route::delete('/library/{game}/{listType}', [LibraryController::class, 'destroyByCategory'])
+    ->whereIn('listType', ['owned', 'wishlist'])
+    ->name('api.library.destroyByCategory');
 Route::delete('/library/{libraryEntry}', [LibraryController::class, 'destroy'])->name('api.library.destroy');
 
 // Answers & Questions

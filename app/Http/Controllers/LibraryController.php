@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Comment;
 use App\Models\Game;
 use App\Models\LibraryEntry;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -32,7 +32,7 @@ class LibraryController extends Controller
         ]));
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request): JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
             'game_id' => ['required', 'integer', 'exists:games,id'],
@@ -65,5 +65,31 @@ class LibraryController extends Controller
         $libraryEntry->delete();
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Remove a game from one of the user's library categories (owned / wishlist).
+     */
+    public function destroyByCategory(Request $request, Game $game, string $listType): JsonResponse|RedirectResponse
+    {
+        if (! in_array($listType, ['owned', 'wishlist'], true)) {
+            abort(404);
+        }
+
+        LibraryEntry::query()
+            ->where('user_id', $request->user()->id)
+            ->where('game_id', $game->id)
+            ->where('list_type', $listType)
+            ->delete();
+
+        if ($request->header('X-Inertia')) {
+            return back();
+        }
+
+        return response()->json([
+            'removed' => true,
+            'game_id' => $game->id,
+            'list_type' => $listType,
+        ]);
     }
 }

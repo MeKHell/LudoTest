@@ -36,6 +36,53 @@ class LibraryTest extends TestCase
         $this->assertDatabaseMissing('library_entries', ['id' => $entry->id]);
     }
 
+    public function test_user_can_remove_game_from_category(): void
+    {
+        $user = User::factory()->create();
+        $game = Game::create(['name' => 'Category Game']);
+
+        LibraryEntry::create([
+            'user_id' => $user->id,
+            'game_id' => $game->id,
+            'list_type' => 'wishlist',
+        ]);
+
+        $this->actingAs($user)
+            ->deleteJson('/api/library/'.$game->id.'/wishlist')
+            ->assertOk()
+            ->assertJson([
+                'removed' => true,
+                'game_id' => $game->id,
+                'list_type' => 'wishlist',
+            ]);
+
+        $this->assertDatabaseMissing('library_entries', [
+            'user_id' => $user->id,
+            'game_id' => $game->id,
+            'list_type' => 'wishlist',
+        ]);
+    }
+
+    public function test_posting_an_existing_entry_is_idempotent(): void
+    {
+        $user = User::factory()->create();
+        $game = Game::create(['name' => 'Owned Game']);
+
+        $this->actingAs($user)
+            ->postJson('/api/library', ['game_id' => $game->id, 'list_type' => 'owned'])
+            ->assertCreated();
+
+        $this->actingAs($user)
+            ->postJson('/api/library', ['game_id' => $game->id, 'list_type' => 'owned'])
+            ->assertOk();
+
+        $this->assertSame(1, LibraryEntry::where([
+            'user_id' => $user->id,
+            'game_id' => $game->id,
+            'list_type' => 'owned',
+        ])->count());
+    }
+
     public function test_user_cannot_delete_another_users_library_entry(): void
     {
         $owner = User::factory()->create();

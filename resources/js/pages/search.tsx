@@ -147,7 +147,9 @@ function ResultCard({
                                 variant="ghost"
                                 onClick={(e) => onAddToLibrary(e, Number(result.id), 'wishlist')}
                             >
-                                <Star className="mr-1 h-3 w-3" />
+                                <Star
+                                    className={`mr-1 h-3 w-3 ${result.list_types.includes('wishlist') ? 'fill-current' : ''}`}
+                                />
                                 {t('search.add_wishlist') || 'Wishlist'}
                             </Button>
                         </div>
@@ -215,31 +217,42 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
         }
     }, []);
 
-    // Add a local game to the user's owned/wishlist lists (Inertia handles CSRF)
+    // Add to or remove from owned/wishlist. POST creates, DELETE /library/{game}/{list} removes.
     const addToLibrary = (e: React.MouseEvent, gameId: number, listType: 'owned' | 'wishlist') => {
         e.stopPropagation(); // Don't also open the game page
 
-        const markInLibrary = (r: SearchResult): SearchResult =>
-            r.id === gameId && r.is_local
-                ? {
-                      ...r,
-                      in_user_library: true,
-                      list_types: [...new Set([...r.list_types, listType])],
-                  }
-                : r;
+        const alreadyInList = (results: SearchResult[]) =>
+            results.some((r) => r.id === gameId && r.is_local && r.list_types.includes(listType));
 
-        router.post(
-            '/api/library',
-            { game_id: gameId, list_type: listType },
-            {
-                preserveScroll: true,
-                preserveState: true,
-                onSuccess: () => {
-                    setSearchResults((prev) => prev.map(markInLibrary));
-                    setRandomGames((prev) => prev.map(markInLibrary));
-                },
+        const isRemoving =
+            alreadyInList(searchResults) || alreadyInList(randomGames);
+
+        const applyListChange = (r: SearchResult): SearchResult => {
+            if (r.id !== gameId || !r.is_local) return r;
+            const listTypes = isRemoving
+                ? r.list_types.filter((type) => type !== listType)
+                : [...new Set([...r.list_types, listType])];
+            return {
+                ...r,
+                list_types: listTypes,
+                in_user_library: listTypes.length > 0,
+            };
+        };
+
+        const options = {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                setSearchResults((prev) => prev.map(applyListChange));
+                setRandomGames((prev) => prev.map(applyListChange));
             },
-        );
+        };
+
+        if (isRemoving) {
+            router.delete(`/api/library/${gameId}/${listType}`, options);
+        } else {
+            router.post('/api/library', { game_id: gameId, list_type: listType }, options);
+        }
     };
 
     // Infinite scroll: load the next page when the sentinel nears the viewport
