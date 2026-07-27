@@ -52,6 +52,7 @@ x-env: &env
   FILESYSTEM_DISK: local
   WAIT_FOR_DB: "true"
   CACHE_CONFIG: "true"
+  RUN_SEEDERS: "false"
 
 services:
   app:
@@ -60,6 +61,7 @@ services:
       <<: *env
       RUN_MIGRATIONS: "true"
       ENABLE_CRON: "true"
+      RUN_SEEDERS: "true"
     expose:
       - "9000"
 

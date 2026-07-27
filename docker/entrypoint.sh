@@ -74,6 +74,19 @@ if [ "$RUN_MIGRATIONS" = "true" ]; then
             exit 1
         fi
         echo "Migration failed; continuing in non-production environment." >&2
+    elif [ "$RUN_SEEDERS" = "true" ]; then
+        # Seed once on an empty catalog (idempotent seeders, but skip if already populated).
+        needs_seed="$(php -r '
+            require "vendor/autoload.php";
+            $app = require "bootstrap/app.php";
+            $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+            $kernel->bootstrap();
+            echo (Illuminate\Support\Facades\Schema::hasTable("languages")
+                && App\Models\Language::query()->count() === 0) ? "1" : "0";
+        ')"
+        if [ "$needs_seed" = "1" ]; then
+            php artisan db:seed --force --no-interaction
+        fi
     fi
 fi
 
