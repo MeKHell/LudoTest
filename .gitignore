@@ -31,6 +31,5 @@ yarn-error.log
 !/.env.docker.example
 _*
 storage/jmespath
-package-lock.json
 pnpm-lock.yaml
 
