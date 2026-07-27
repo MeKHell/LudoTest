@@ -13,6 +13,7 @@ RUN apt-get update \
         libfreetype6-dev \
         libicu-dev \
         libjpeg62-turbo-dev \
+        libsqlite3-dev \
         libpng-dev \
         libpq-dev \
         libzip-dev \
@@ -81,8 +82,6 @@ RUN apt-get update \
 WORKDIR /var/www/html
 
 COPY --from=vendor /var/www/html /var/www/html
-
-ENV APP_KEY=base64:dGhpc2lzYXB1bGRrZXlmb3Jkb2NrZXJidWlsZHByb2Nlc3Nlc2VjdXJlcw==
 
 RUN if [ "$BUILD_FRONTEND" = "true" ]; then \
         php artisan wayfinder:generate \
