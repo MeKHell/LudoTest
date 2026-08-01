@@ -1,13 +1,13 @@
 # Production stack: app (PHP-FPM + cron) + nginx + postgres + redis + queue.
 #   docker compose up -d --build
 #
-# Local development is not this file — use `composer dev` on the host.
+# Self-contained HTTP on :8081 via nginx. Optional external reverse proxy
+# (Caddy, Traefik, …): reverse_proxy ludotest-web:80 on the proxy network.
 #
 # Secrets from the project .env (compose interpolation only):
 #   LUDOTEST_APP_KEY
 #   LUDOTEST_DB_PASSWORD
 #
-# To reuse Immich's Postgres/Valkey, use docker-compose.immich.yml instead.
 
 name: ludotest
 
@@ -27,7 +27,6 @@ x-app: &app
   networks:
     - ludotest
 
-# Non-secret runtime config is fixed here. Only APP_KEY / DB password are injected.
 x-env: &env
   APP_NAME: LudoTest
   APP_ENV: production
@@ -57,6 +56,7 @@ x-env: &env
 services:
   app:
     <<: *app
+    container_name: ludotest
     environment:
       <<: *env
       RUN_MIGRATIONS: "true"
@@ -79,6 +79,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: web
+    container_name: ludotest-web
     restart: unless-stopped
     depends_on:
       - app
