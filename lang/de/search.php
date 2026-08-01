@@ -14,4 +14,5 @@ return [
     'add_owned' => 'Zu Besitz hinzufügen',
     'add_wishlist' => 'Zur Wunschliste',
     'remove_from_library' => 'Entfernen',
+    'discover' => 'Spiele entdecken',
 ];

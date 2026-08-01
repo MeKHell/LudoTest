@@ -14,4 +14,5 @@ return [
     'add_owned' => 'Add to owned',
     'add_wishlist' => 'Add to wishlist',
     'remove_from_library' => 'Remove',
+    'discover' => 'Discover games',
 ];
