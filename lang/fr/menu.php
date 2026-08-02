@@ -11,6 +11,7 @@ return [
     'logout' => 'Déconnexion',
     'platform' => 'Plateforme',
     'loading' => 'Chargement…',
+    'load_failed' => 'Impossible de charger cette section. Le reste de la page reste disponible.',
     'ludoCH' => 'FLS',
     'project' => 'Projet',
 ];
