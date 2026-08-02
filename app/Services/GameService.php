@@ -32,7 +32,9 @@ class GameService
     public function search(string $query, ?string $sourceSlug = null, array $filters = [], string $filterMode = 'strict'): Collection
     {
         $sourceSlug = $sourceSlug ?: config('app.default_src', 'bgg');
-        $source = Source::where('slug', $sourceSlug)->firstOrFail();
+        // A missing source row (e.g. sources never seeded) must not turn the whole
+        // search into a 404 — local results are still worth returning.
+        $source = Source::where('slug', $sourceSlug)->first();
 
         // 1. Local Search (Title & Description)
         $localGames = Game::query()
@@ -53,37 +55,47 @@ class GameService
             ->when($filters !== [], fn ($q) => $this->applySearchFiltersToQuery($q, $filters, $filterMode))
             ->get();
 
-        // 2. External Search
-        try {
-            $externalResults = $this->resolveProvider($sourceSlug)->search($query);
-        } catch (\Exception $e) {
-            // Log error or handle failure
-            $externalResults = collect();
+        // 2. External Search — external hits can only be de-duplicated against the
+        // local database through the source row, so skip them when it is absent.
+        $externalResults = collect();
+
+        if ($source) {
+            try {
+                $externalResults = $this->resolveProvider($sourceSlug)->search($query);
+            } catch (\Exception $e) {
+                // Log error or handle failure
+                $externalResults = collect();
+            }
         }
 
         // 3. De-duplicate & Merge
         $results = collect();
         $externalIds = $externalResults->pluck('externalId')->toArray();
-        $localExternalIds = GameSource::where('source_id', $source->id)
-            ->whereIn('external_id', $externalIds)
-            ->pluck('external_id');
-        $gameSources = GameSource::where('source_id', $source->id)
-            ->whereIn('external_id', $externalIds)
-            ->when($filters !== [], fn ($q) => $q->whereHas(
-                'game',
-                fn ($gameQuery) => $this->applySearchFiltersToQuery($gameQuery, $filters, $filterMode)
-            ))
-            ->with(['game' => function($q) use ($query) {
-                $q->select('games.*')
-                  ->selectSub(function ($sq) use ($query) {
-                      $sq->selectRaw('count(*)')
-                          ->from('translations')
-                          ->whereColumn('translations.translation_id', 'games.translation_id')
-                          ->where('translations.text', 'LIKE', "%{$query}%");
-                  }, 'description_match_count');
-            }])
-            ->get()
-            ->keyBy('external_id');
+        $localExternalIds = collect();
+        $gameSources = collect();
+
+        if ($source && $externalIds !== []) {
+            $localExternalIds = GameSource::where('source_id', $source->id)
+                ->whereIn('external_id', $externalIds)
+                ->pluck('external_id');
+            $gameSources = GameSource::where('source_id', $source->id)
+                ->whereIn('external_id', $externalIds)
+                ->when($filters !== [], fn ($q) => $q->whereHas(
+                    'game',
+                    fn ($gameQuery) => $this->applySearchFiltersToQuery($gameQuery, $filters, $filterMode)
+                ))
+                ->with(['game' => function($q) use ($query) {
+                    $q->select('games.*')
+                      ->selectSub(function ($sq) use ($query) {
+                          $sq->selectRaw('count(*)')
+                              ->from('translations')
+                              ->whereColumn('translations.translation_id', 'games.translation_id')
+                              ->where('translations.text', 'LIKE', "%{$query}%");
+                      }, 'description_match_count');
+                }])
+                ->get()
+                ->keyBy('external_id');
+        }
 
         // Merge external results
         foreach ($externalResults as $extData) {

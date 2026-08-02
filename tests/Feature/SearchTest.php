@@ -110,6 +110,17 @@ class SearchTest extends TestCase
         $this->assertEquals(40, $match['score']);
     }
 
+    public function test_search_returns_local_results_when_source_row_is_missing()
+    {
+        Source::query()->delete();
+        Game::create(['name' => 'Flip 7']);
+
+        $response = $this->getJson('/api/search?q=Flip');
+
+        $response->assertStatus(200);
+        $this->assertEquals('Flip 7', collect($response->json())->firstWhere('name', 'Flip 7')['name'] ?? null);
+    }
+
     public function test_search_validates_query_length_and_limit()
     {
         $longQuery = str_repeat('a', 201);

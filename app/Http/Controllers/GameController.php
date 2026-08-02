@@ -36,7 +36,7 @@ class GameController extends Controller
                         SELECT MAX(created_at) AS activity_at FROM comments WHERE game_id = games.id
                         UNION ALL
                         SELECT MAX(created_at) AS activity_at FROM answers WHERE game_id = games.id
-                    )
+                    ) AS activity
                 ) AS last_activity_at')
                 ->where(function ($query) {
                     $query->whereHas('comments')
