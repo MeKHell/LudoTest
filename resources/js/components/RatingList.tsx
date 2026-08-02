@@ -2,6 +2,7 @@ import Loading from '@/components/loading';
 import StarRating from '@/components/StarRating';
 import { Badge } from '@/components/ui/badge';
 import { useLang } from '@/hooks/useLang';
+import { fetchJson } from '@/lib/fetch-json';
 import Answer from '@/routes/api/answer';
 import { Question } from '@/types';
 import { useForm } from '@inertiajs/react';
@@ -23,14 +24,25 @@ export function RatingList({ gameId }: { gameId: string }): ReactNode {
     const loadAnswers = useCallback(
         (withLoading: boolean) => {
             if (withLoading) setIsLoading(true);
-            fetch(Answer.get(gameId).url)
-                .then((res) => res.json())
+            fetchJson<{
+                questions?: Question[];
+                answers?: Record<string, number>;
+                self_votes?: Record<string, number>;
+            }>(Answer.get(gameId).url)
                 .then((data) => {
-                    setQuestions(() => data.questions);
-                    setAnswers(() => data.answers);
-                    setSelfAnswers(() => data.self_votes);
+                    setQuestions(Array.isArray(data.questions) ? data.questions : []);
+                    setAnswers(data.answers ?? {});
+                    setSelfAnswers(data.self_votes ?? {});
                 })
-                .then(() => setIsLoading(false));
+                .catch((error) => {
+                    console.error('Failed to load answers', error);
+                    setQuestions([]);
+                    setAnswers({});
+                    setSelfAnswers({});
+                })
+                .finally(() => {
+                    if (withLoading) setIsLoading(false);
+                });
         },
         [gameId],
     );

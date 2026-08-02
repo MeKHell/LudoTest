@@ -15,6 +15,7 @@ import { VersionTable } from '@/components/version-table';
 import { useBreadcrumbContext } from '@/hooks/useBreadcrumbs';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
+import { fetchJson } from '@/lib/fetch-json';
 import { game_internal, home } from '@/routes';
 import { type Game } from '@/types';
 import { usePage } from '@inertiajs/react';
@@ -36,6 +37,8 @@ function Game({ id }: { id: string }) {
     );
     const [gameData, setGameData] = useState<Game>();
     const [versionsData, setVersionsData] = useState<Game[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadFailed, setLoadFailed] = useState(false);
 
     const shortDesigners: string = useMemo(
         () => keepShort(gameData?.designers, t('game.no_designer')),
@@ -66,16 +69,35 @@ function Game({ id }: { id: string }) {
 
     // Fetches the api
     useEffect(() => {
-        (async () => {
-            const data: { game: Game; versions: Game[] } = await fetch(
-                GameController.get(id).url,
-            ).then((res) => res.json());
-            setGameData(() => data.game);
-            setVersionsData(() => data.versions);
-        })();
+        setIsLoading(true);
+        setLoadFailed(false);
+        fetchJson<{ game: Game; versions: Game[] }>(GameController.get(id).url)
+            .then((data) => {
+                setGameData(data.game);
+                setVersionsData(Array.isArray(data.versions) ? data.versions : []);
+            })
+            .catch((error) => {
+                console.error('Failed to load game', error);
+                setGameData(undefined);
+                setVersionsData([]);
+                setLoadFailed(true);
+            })
+            .finally(() => setIsLoading(false));
     }, [id]);
 
-    return gameData ? (
+    if (isLoading) {
+        return <Loading />;
+    }
+
+    if (loadFailed || !gameData) {
+        return (
+            <div className="container mx-auto px-4 py-16 text-center text-muted-foreground">
+                {t('menu.load_failed')}
+            </div>
+        );
+    }
+
+    return (
         <div className="min-h-screen bg-background">
             <div className="bg-muted/30">
                 <div className="container mx-auto px-4 py-8">
@@ -423,8 +445,6 @@ function Game({ id }: { id: string }) {
                 </Tabs>
             </div>
         </div>
-    ) : (
-        <Loading />
     );
 }
 

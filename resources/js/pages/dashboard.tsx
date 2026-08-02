@@ -6,6 +6,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { useBreadcrumbContext } from '@/hooks/useBreadcrumbs';
 import { useLang } from '@/hooks/useLang';
+import { fetchJson } from '@/lib/fetch-json';
 import { MessageSquare, Library, ThumbsUp, ImageOff } from 'lucide-react';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 
@@ -27,10 +28,21 @@ interface DashboardData {
     recentLibraryGames: RecentLibraryGame[];
 }
 
+const emptyDashboard: DashboardData = {
+    stats: {
+        comments_count: 0,
+        votes_count: 0,
+        library_count: 0,
+    },
+    recentLibraryGames: [],
+};
+
 function Dashboard() {
     const { setBreadcrumbs } = useBreadcrumbContext();
     const { t } = useLang();
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadFailed, setLoadFailed] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
@@ -47,9 +59,26 @@ function Dashboard() {
     }, [setBreadcrumbs, breadcrumbs]);
 
     useEffect(() => {
-        fetch('/api/dashboard', { headers: { Accept: 'application/json' } })
-            .then((response) => response.json())
-            .then((data: DashboardData) => setDashboardData(data));
+        fetchJson<DashboardData>('/api/dashboard')
+            .then((data) => {
+                setDashboardData({
+                    stats: {
+                        comments_count: data?.stats?.comments_count ?? 0,
+                        votes_count: data?.stats?.votes_count ?? 0,
+                        library_count: data?.stats?.library_count ?? 0,
+                    },
+                    recentLibraryGames: Array.isArray(data?.recentLibraryGames)
+                        ? data.recentLibraryGames
+                        : [],
+                });
+                setLoadFailed(false);
+            })
+            .catch((error) => {
+                console.error('Failed to load dashboard', error);
+                setDashboardData(emptyDashboard);
+                setLoadFailed(true);
+            })
+            .finally(() => setIsLoading(false));
     }, []);
 
     const listTypeLabel = (listType: string): string => {
@@ -62,7 +91,7 @@ function Dashboard() {
         return listType;
     };
 
-    if (!dashboardData) {
+    if (isLoading || !dashboardData) {
         return (
             <>
                 <Head title={t('dashboard.title')} />
@@ -77,6 +106,9 @@ function Dashboard() {
         <>
             <Head title={t('dashboard.title')} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                {loadFailed && (
+                    <p className="text-sm text-muted-foreground">{t('menu.load_failed')}</p>
+                )}
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">

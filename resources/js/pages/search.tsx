@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
+import { fetchJson } from '@/lib/fetch-json';
 import { game_internal } from '@/routes';
 import { router, usePage } from '@inertiajs/react';
 import { Bookmark, BookmarkCheck, Clock, ImageOff, Loader2, Search, Star, Users } from 'lucide-react';
@@ -187,14 +188,11 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
         const loaderTimer = setTimeout(() => setShowLoader(true), 100); // Delay loader so fast responses don't flash
 
         try {
-            const response = await fetch(
+            const data = await fetchJson<SearchResult[]>(
                 GameController.search({ query: { q: searchQuery, limit: 50, page: pageNum } }).url,
-                { headers: { Accept: 'application/json' } }
             );
-
-            const data = await response.json();
             // Library fields are only present for local games; default them for external hits.
-            const normalized = data.map((item: SearchResult) => ({
+            const normalized = (Array.isArray(data) ? data : []).map((item: SearchResult) => ({
                 ...item,
                 in_user_library: item.in_user_library ?? false,
                 list_types: item.list_types ?? [],
@@ -209,6 +207,10 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
             setHasMore(normalized.length === 50);
         } catch (error) {
             console.error('Error fetching search results:', error);
+            if (pageNum === 1) {
+                setSearchResults([]);
+            }
+            setHasMore(false);
         } finally {
             clearTimeout(loaderTimer);
             setShowLoader(false);
@@ -292,18 +294,20 @@ function SearchPage({ query: initialQuery }: SearchPageProps) {
 
     // When no search is active, show a (server-cached) random pick of local games
     useEffect(() => {
-        fetch('/api/random', { headers: { Accept: 'application/json' } })
-            .then((response) => response.json())
-            .then((data: SearchResult[]) =>
+        fetchJson<SearchResult[]>('/api/random')
+            .then((data) =>
                 setRandomGames(
-                    data.map((item) => ({
+                    (Array.isArray(data) ? data : []).map((item) => ({
                         ...item,
                         in_user_library: item.in_user_library ?? false,
                         list_types: item.list_types ?? [],
                     })),
                 ),
             )
-            .catch((error) => console.error('Error fetching random games', error));
+            .catch((error) => {
+                console.error('Error fetching random games', error);
+                setRandomGames([]);
+            });
     }, []);
 
     const handleSearch = (e: React.FormEvent) => {

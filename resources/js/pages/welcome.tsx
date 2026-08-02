@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useLang } from '@/hooks/useLang';
 import AppLayout from '@/layouts/app-layout';
+import { fetchJson } from '@/lib/fetch-json';
 import { game_internal } from '@/routes';
 import { Question } from '@/types';
 import { router, Head } from '@inertiajs/react';
@@ -85,19 +86,41 @@ function Welcome() {
     const [questions, setQuestions] = useState<WelcomeQuestion[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(true);
     const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
+    const [historyFailed, setHistoryFailed] = useState(false);
+    const [questionsFailed, setQuestionsFailed] = useState(false);
     const { t, locale } = useLang();
 
     useEffect(() => {
-        fetch('/api/latest', { headers: { Accept: 'application/json' } })
-            .then((response) => response.json())
-            .then((data: WelcomeGame[]) => setRecentGames(data))
-            .catch((error) => console.error('Failed to load recent games', error))
+        fetchJson<WelcomeGame[]>('/api/latest')
+            .then((data) => {
+                setRecentGames(Array.isArray(data) ? data : []);
+                setHistoryFailed(false);
+            })
+            .catch((error) => {
+                console.error('Failed to load recent games', error);
+                setRecentGames([]);
+                setHistoryFailed(true);
+            })
             .finally(() => setIsLoadingHistory(false));
 
-        fetch('/api/questions', { headers: { Accept: 'application/json' } })
-            .then((response) => response.json())
-            .then((data) => setQuestions(data.questions ?? []))
-            .catch((error) => console.error('Failed to load questions', error))
+        fetchJson<{ questions?: WelcomeQuestion[] }>('/api/questions')
+            .then((data) => {
+                const list = Array.isArray(data?.questions) ? data.questions : [];
+                setQuestions(
+                    list.map((question) => ({
+                        ...question,
+                        top_games: Array.isArray(question.top_games)
+                            ? question.top_games
+                            : [],
+                    })),
+                );
+                setQuestionsFailed(false);
+            })
+            .catch((error) => {
+                console.error('Failed to load questions', error);
+                setQuestions([]);
+                setQuestionsFailed(true);
+            })
             .finally(() => setIsLoadingQuestions(false));
     }, []);
 
@@ -155,6 +178,10 @@ function Welcome() {
 
                     {isLoadingHistory ? (
                         <Loading />
+                    ) : historyFailed ? (
+                        <p className="text-center text-muted-foreground">
+                            {t('menu.load_failed')}
+                        </p>
                     ) : recentGames.length === 0 ? (
                         <p className="text-center text-muted-foreground">
                             {t('welcome.no_recent_games')}
@@ -197,6 +224,10 @@ function Welcome() {
 
                     {isLoadingQuestions ? (
                         <Loading />
+                    ) : questionsFailed ? (
+                        <p className="text-center text-muted-foreground">
+                            {t('menu.load_failed')}
+                        </p>
                     ) : questions.length === 0 ? (
                         <p className="text-center text-muted-foreground">
                             {t('welcome.no_questions_yet')}

@@ -1,6 +1,7 @@
 import CommentDisplay from '@/components/CommentDisplay';
 import { CommentForm } from '@/components/CommentForm';
 import Loading from '@/components/loading';
+import { fetchJson } from '@/lib/fetch-json';
 import { default as CommentAPI } from '@/routes/api/comment';
 import { type Comment } from '@/types';
 import { ReactNode, useEffect, useState } from 'react';
@@ -14,10 +15,13 @@ export default function CommentManager({
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const loadComments = () => {
         setIsLoading(true);
-        fetch(CommentAPI.get(gameId).url)
-            .then((res) => res.json())
-            .then((data) => setComments(() => data))
-            .then(() => setIsLoading(false));
+        fetchJson<Comment[]>(CommentAPI.get(gameId).url)
+            .then((data) => setComments(Array.isArray(data) ? data : []))
+            .catch((error) => {
+                console.error('Failed to load comments', error);
+                setComments([]);
+            })
+            .finally(() => setIsLoading(false));
     };
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
