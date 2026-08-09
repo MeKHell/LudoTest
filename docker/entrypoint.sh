@@ -75,14 +75,21 @@ if [ "$RUN_MIGRATIONS" = "true" ]; then
         fi
         echo "Migration failed; continuing in non-production environment." >&2
     elif [ "$RUN_SEEDERS" = "true" ]; then
-        # Seed once on an empty catalog (idempotent seeders, but skip if already populated).
+        # Seed catalog when languages are missing, or when sources exist without
+        # language_mappings (common after partial seeds / older SourceSeeder).
         needs_seed="$(php -r '
             require "vendor/autoload.php";
             $app = require "bootstrap/app.php";
             $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
             $kernel->bootstrap();
-            echo (Illuminate\Support\Facades\Schema::hasTable("languages")
-                && App\Models\Language::query()->count() === 0) ? "1" : "0";
+            if (! Illuminate\Support\Facades\Schema::hasTable("languages")) {
+                echo "0";
+                exit;
+            }
+            $noLanguages = App\Models\Language::query()->count() === 0;
+            $noMappings = Illuminate\Support\Facades\Schema::hasTable("language_mappings")
+                && App\Models\LanguageMapping::query()->count() === 0;
+            echo ($noLanguages || $noMappings) ? "1" : "0";
         ')"
         if [ "$needs_seed" = "1" ]; then
             php artisan db:seed --force --no-interaction
