@@ -11,7 +11,6 @@ class DatabaseSeeder extends Seeder
         $this->call(RoleSeeder::class);
         $this->call(LanguageSeeder::class);
         $this->call(SourceSeeder::class);
-        $this->call(LanguageMappingSeeder::class);
         $this->call(QuestionSeeder::class);
 
         if (app()->environment('local')) {
