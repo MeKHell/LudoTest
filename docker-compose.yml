@@ -7,6 +7,7 @@
 # Secrets from the project .env (compose interpolation only):
 #   LUDOTEST_APP_KEY
 #   LUDOTEST_DB_PASSWORD
+#   LUDOTEST_BGG_API_KEY (optional but required for live BoardGameGeek search/import)
 #
 
 name: ludotest
@@ -41,6 +42,7 @@ x-env: &env
   DB_DATABASE: ludotest
   DB_USERNAME: ludotest
   DB_PASSWORD: ${LUDOTEST_DB_PASSWORD:?Set LUDOTEST_DB_PASSWORD in .env}
+  BGG_API_KEY: ${LUDOTEST_BGG_API_KEY:-}
   REDIS_HOST: redis
   REDIS_PORT: "6379"
   REDIS_CLIENT: predis
