@@ -52,7 +52,9 @@ function Game({ id }: { id: string }) {
     const languages = useMemo(
         () => [
             ...new Set(
-                versionsData.flatMap((x) => x.languages.map((y) => y.code)),
+                versionsData.flatMap((x) =>
+                    (x.languages ?? []).map((y) => y.code),
+                ),
             ),
         ],
         [versionsData],

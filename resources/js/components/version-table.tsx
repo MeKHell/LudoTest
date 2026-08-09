@@ -26,8 +26,7 @@ export function VersionTable({ versionsData }: { versionsData: Game[] }) {
         () => [
             ...new Map(
                 versionsData
-                    .map((game) => game.languages)
-                    .flat()
+                    .flatMap((game) => game.languages ?? [])
                     .map((lang) => [lang.code, lang]),
             ).values(),
         ],
@@ -42,7 +41,7 @@ export function VersionTable({ versionsData }: { versionsData: Game[] }) {
                 .filter(
                     (v) =>
                         filteredLanguage.length === 0 ||
-                        v.languages
+                        (v.languages ?? [])
                             .map((l) => l.code)
                             .some((code) => filteredLanguage.includes(code)),
                 )
@@ -137,7 +136,7 @@ export function VersionTable({ versionsData }: { versionsData: Game[] }) {
                             </TableCell>
                             <TableCell>
                                 {version.languages
-                                    .map((x) => x.name)
+                                    ?.map((x) => x.name)
                                     .join(', ')}
                             </TableCell>
                             <TableCell>
