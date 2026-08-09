@@ -63,7 +63,8 @@ class GameService
             try {
                 $externalResults = $this->resolveProvider($sourceSlug)->search($query);
             } catch (\Exception $e) {
-                // Log error or handle failure
+                // Do not hide BGG failures (missing/invalid API key → 401, etc.).
+                report($e);
                 $externalResults = collect();
             }
         }
@@ -329,7 +330,9 @@ class GameService
             
             if ($targetName && $game->name !== $targetName) {
                 $version = $game->versions()->where('name', $targetName)->first();
-                if ($version) return $version;
+                if ($version) {
+                    return $version;
+                }
             }
             
             return $game;

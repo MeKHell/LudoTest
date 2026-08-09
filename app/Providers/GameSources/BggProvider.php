@@ -48,15 +48,23 @@ class BggProvider implements GameProviderInterface
     private function getVersionsFormatter(): string
     {
         $source = \App\Models\Source::where('slug', $this->sourceSlug)->first();
-        if (!$source) {
-            return "items.item.versions | []";
+        if (! $source) {
+            return 'items.item.versions | []';
         }
 
         $langs = \App\Models\LanguageMapping::where('source_id', $source->id)
             ->pluck('external_name')
-            ->toArray();
-        $langList = "'" . implode("','", $langs) . "'";
-        
+            ->filter() // Removes empty/null items to not have ''
+            ->values()
+            ->all();
+
+        // Without mappings the JMES filter matches nothing useful — fail closed.
+        if ($langs === []) {
+            return 'items.item.versions | []';
+        }
+
+        $langList = "'".implode("','", $langs)."'";
+
         return "items.item.versions |
             ([item][])[?contains(map(&contains([$langList], @),
                 ([link][])[?xml_attr.type == 'language'].xml_attr.value),`true`)].{
@@ -81,7 +89,7 @@ class BggProvider implements GameProviderInterface
     public function fetchById(string $externalId): ExternalGameData
     {
         $rawData = $this->query('thing', ['id' => $externalId, 'versions' => 1]);
-        
+
         $gameData = ($this->jmes)($this->gameFormatter, $rawData);
         $versionsData = ($this->jmes)($this->getVersionsFormatter(), $rawData) ?: [];
 
@@ -91,7 +99,7 @@ class BggProvider implements GameProviderInterface
     public function search(string $query): Collection
     {
         $rawData = $this->query('search', ['query' => $query, 'type' => 'boardgame']);
-        
+
         $formatter = "items.item[].{src_id: xml_attr.id, name: name.xml_attr.value, pub_year: yearpublished.xml_attr.value}";
         $results = ($this->jmes)($formatter, $rawData) ?: [];
 
@@ -167,11 +175,24 @@ class BggProvider implements GameProviderInterface
     private function query(string $path, array $params): array
     {
         $config = config("app.src_list.{$this->sourceSlug}");
+        $apiKey = $config['api_key'] ?? null;
+        if (! is_string($apiKey) || $apiKey === '') {
+            throw new \RuntimeException(
+                'BGG_API_KEY is not configured. Set it in .env (local) or LUDOTEST_BGG_API_KEY (Docker).'
+            );
+        }
+
         $url = $config['url'] . '/' . $path;
-        
+
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . ($config['api_key'] ?? '')
+            'Authorization' => 'Bearer ' . $apiKey,
         ])->get($url, $params);
+
+        if ($response->status() === 401) {
+            throw new \RuntimeException(
+                'BGG API returned 401 Unauthorized. Check BGG_API_KEY / LUDOTEST_BGG_API_KEY.'
+            );
+        }
 
         if ($response->failed()) {
             throw new \Exception("BGG API Error: " . $response->reason());

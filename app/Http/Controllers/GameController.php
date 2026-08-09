@@ -118,9 +118,16 @@ class GameController extends Controller
 
         $filterKey = $filters === [] ? '' : '_'.md5(json_encode([$filters, $filterMode]));
         $key = "search_game_{$query}_{$src}{$filterKey}";
-        $allResults = Cache::remember($key, now()->addDay(), function () use ($query, $src, $filters, $filterMode) {
-            return $this->gameService->search($query, $src, $filters, $filterMode);
-        });
+
+        // Never cache empty result sets: a transient BGG 401 / missing API key
+        // would otherwise poison that query for a full day.
+        $allResults = Cache::get($key);
+        if ($allResults === null) {
+            $allResults = $this->gameService->search($query, $src, $filters, $filterMode);
+            if ($allResults->isNotEmpty()) {
+                Cache::put($key, $allResults, now()->addDay());
+            }
+        }
 
         $results = $allResults->slice(($page - 1) * $limit, $limit)->values();
 
@@ -136,7 +143,7 @@ class GameController extends Controller
         }
 
         // Load relationships for the resource
-        $game->load(['worked_on', 'translationKey', 'comments', 'parent', 'answers']);
+        $game->load(['worked_on', 'translationKey', 'comments', 'parent', 'answers', 'gameSources.source']);
         
         $versions = $game->versions()->with('languages')->get();
 
