@@ -67,4 +67,28 @@ class BggProviderTest extends TestCase
         $this->assertNotNull($catan);
         $this->assertEquals('Catan', $catan->name);
     }
+
+    public function test_search_returns_single_bgg_item(): void
+    {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="utf-8"?>
+<items total="1" termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
+    <item type="boardgame" id="432456">
+        <name type="primary" value="dnup" />
+        <yearpublished value="2025" />
+    </item>
+</items>
+XML;
+
+        Http::fake([
+            'boardgamegeek.com/xmlapi2/search*' => Http::response($xml, 200),
+        ]);
+
+        $results = $this->provider->search('dnup');
+
+        $this->assertCount(1, $results);
+        $this->assertSame('432456', $results->first()->externalId);
+        $this->assertSame('dnup', $results->first()->name);
+        $this->assertSame(2025, $results->first()->pubYear);
+    }
 }

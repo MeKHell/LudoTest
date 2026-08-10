@@ -100,10 +100,20 @@ class BggProvider implements GameProviderInterface
     {
         $rawData = $this->query('search', ['query' => $query, 'type' => 'boardgame']);
 
+        // xmlToArray stores a lone <item> as an object, but multiple as a list.
+        // JMES `items.item[]` only works on lists — normalize first.
+        $items = $rawData['items']['item'] ?? null;
+        if ($items === null || $items === []) {
+            return collect();
+        }
+        if (! array_is_list($items)) {
+            $rawData['items']['item'] = [$items];
+        }
+
         $formatter = "items.item[].{src_id: xml_attr.id, name: name.xml_attr.value, pub_year: yearpublished.xml_attr.value}";
         $results = ($this->jmes)($formatter, $rawData) ?: [];
 
-        return collect($results)->map(fn($item) => new ExternalGameData(
+        return collect($results)->map(fn ($item) => new ExternalGameData(
             externalId: $item['src_id'],
             sourceSlug: $this->sourceSlug,
             name: $item['name'],
