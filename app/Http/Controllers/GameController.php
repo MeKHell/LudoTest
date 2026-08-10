@@ -143,7 +143,15 @@ class GameController extends Controller
         }
 
         // Load relationships for the resource
-        $game->load(['worked_on', 'translationKey', 'comments', 'parent', 'answers', 'gameSources.source']);
+        $game->load([
+            'worked_on',
+            'translationKey',
+            'comments',
+            'parent.languages',
+            'answers',
+            'gameSources.source',
+            'languages',
+        ]);
         
         $versions = $game->versions()->with('languages')->get();
 

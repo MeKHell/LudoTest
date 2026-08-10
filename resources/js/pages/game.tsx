@@ -49,16 +49,16 @@ function Game({ id }: { id: string }) {
         [gameData?.publishers, keepShort, t],
     );
 
-    const languages = useMemo(
-        () => [
-            ...new Set(
-                versionsData.flatMap((x) =>
-                    (x.languages ?? []).map((y) => y.code),
-                ),
-            ),
-        ],
-        [versionsData],
-    );
+    const languages = useMemo(() => {
+        // Version edition pages have no child versions — use this edition's languages.
+        // Main game pages aggregate languages across all versions.
+        const fromEdition =
+            Boolean(gameData?.parent) || versionsData.length === 0
+                ? (gameData?.languages ?? [])
+                : versionsData.flatMap((x) => x.languages ?? []);
+
+        return [...new Set(fromEdition.map((lang) => lang.code))];
+    }, [gameData, versionsData]);
 
     useEffect(() => {
         const original = [
